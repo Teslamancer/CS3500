@@ -37,12 +37,12 @@ namespace FormulaEvaluator
             {
                 token.Trim();
                 //Checks if token is empty string and ignores it if it is
-                if(token == "")
+                if (token == "")
                 {
                     continue;
                 }
                 //checks if token is an integer and returns its value if it is
-                else if(int.TryParse(token, out int tokenValue))
+                else if (int.TryParse(token, out int tokenValue))
                 {
                     if (operators.Peek() == "*")
                     {
@@ -55,9 +55,9 @@ namespace FormulaEvaluator
                             int result = int.Parse(values.Pop()) * tokenValue;
                             values.Push(result.ToString());
                         }
-                        
+
                     }
-                    else if(operators.Peek() == "/")
+                    else if (operators.Peek() == "/")
                     {
                         if (tokenValue == 0)
                         {
@@ -72,7 +72,7 @@ namespace FormulaEvaluator
                             int result = int.Parse(values.Pop()) / tokenValue;
                             values.Push(result.ToString());
                         }
-                        
+
                     }
                     else
                     {

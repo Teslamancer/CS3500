@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FormulaEvaluator\FormulaEvaluator.csproj">
-      <Project>{10522942-9c21-420f-b4bb-c178c4897bd9}</Project>
+      <Project>{09a2d1ba-9b1b-4ffb-964f-71d3132a7b94}</Project>
       <Name>FormulaEvaluator</Name>
     </ProjectReference>
   </ItemGroup>
