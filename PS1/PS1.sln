@@ -3,11 +3,29 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormulaEvaluator", "FormulaEvaluator\FormulaEvaluator.csproj", "{10522942-9C21-420F-B4BB-C178C4897BD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvalTester", "EvalTester\EvalTester.csproj", "{A7E3BDB0-1B41-49E6-AFD5-60E97EEB5AC4}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{10522942-9C21-420F-B4BB-C178C4897BD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10522942-9C21-420F-B4BB-C178C4897BD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10522942-9C21-420F-B4BB-C178C4897BD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10522942-9C21-420F-B4BB-C178C4897BD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7E3BDB0-1B41-49E6-AFD5-60E97EEB5AC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7E3BDB0-1B41-49E6-AFD5-60E97EEB5AC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7E3BDB0-1B41-49E6-AFD5-60E97EEB5AC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7E3BDB0-1B41-49E6-AFD5-60E97EEB5AC4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {867F3B30-C9FD-4763-8047-88DD633FF86F}
+		SolutionGuid = {1D99BA35-8615-4CB1-AD55-6C79ECAAA8A4}
 	EndGlobalSection
 EndGlobal
