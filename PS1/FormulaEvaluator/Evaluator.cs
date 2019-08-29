@@ -36,6 +36,49 @@ namespace FormulaEvaluator
             foreach (String token in substrings)
             {
                 token.Trim();
+                //Checks if token is empty string and ignores it if it is
+                if(token == "")
+                {
+                    continue;
+                }
+                //checks if token is an integer and returns its value if it is
+                else if(int.TryParse(token, out int tokenValue))
+                {
+                    if (operators.Peek() == "*")
+                    {
+                        if (values.Count == 0)
+                        {
+                            throw new ArgumentException("Invalid Expression!");
+                        }
+                        else
+                        {
+                            int result = int.Parse(values.Pop()) * tokenValue;
+                            values.Push(result.ToString());
+                        }
+                        
+                    }
+                    else if(operators.Peek() == "/")
+                    {
+                        if (tokenValue == 0)
+                        {
+                            throw new ArgumentException("Divide by zero error!");
+                        }
+                        else if (values.Count == 0)
+                        {
+                            throw new ArgumentException("Invalid Expression!");
+                        }
+                        else
+                        {
+                            int result = int.Parse(values.Pop()) / tokenValue;
+                            values.Push(result.ToString());
+                        }
+                        
+                    }
+                    else
+                    {
+                        values.Push(tokenValue.ToString());
+                    }
+                }
                 //TODO: Implement Algorithm here
             }
             return 0;
