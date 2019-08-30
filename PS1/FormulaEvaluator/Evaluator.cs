@@ -20,7 +20,7 @@ namespace FormulaEvaluator
         /// <returns>Value of the variable as an int</returns>
         public delegate int Lookup(String v);
 
-        private static Stack<String> values = new Stack<String>();
+        private static Stack<int> values = new Stack<int>();
         private static Stack<String> operators = new Stack<String>();
 
         /// <summary>
@@ -32,49 +32,93 @@ namespace FormulaEvaluator
         /// <returns>The result of mathematical evaluation of the expression</returns>
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
+            //removes whitespace of all kinds from expression
             exp = Regex.Replace(exp, @"[\t\s\n\r]", "", RegexOptions.Multiline);
+            System.Console.WriteLine(exp);
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
             foreach (String token in substrings)
             {
-                token.Trim();
+
                 //Checks if token is empty string and ignores it if it is
                 if (token == "")
                 {
                     continue;
                 }
+                else if (token == "*" || token == "/")
+                    operators.Push(token);
+                else if (Regex.IsMatch(token, @"^[A-Z]+\d+[^\D]*$", RegexOptions.IgnoreCase))
+                {
+                    hasValueOperations(variableEvaluator(token));
+                }
+                else if (token == "+")
+                {
+                    if (operators.checkPeek("+") || operators.checkPeek("+"))
+                    {
+
+                    }
+                }
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
                 {
-                    if (operators.checkPeek("*"))
-                    { 
-                        int result = int.Parse(values.Pop()) * tokenValue;
-                        values.Push(result.ToString());
-                    }
-                    else if (operators.checkPeek("/"))
-                    {
-                        if (tokenValue == 0)
-                        {
-                            throw new ArgumentException("Divide by zero error!");
-                        }
-                        else
-                        {
-                            int result = int.Parse(values.Pop()) / tokenValue;
-                            values.Push(result.ToString());
-                        }
-
-                    }
-                    else
-                    {
-                        values.Push(tokenValue.ToString());
-                    }
+                    hasValueOperations(tokenValue);
                 }
-                //TODO: Implement Algorithm here
-                else if(Regex.IsMatch(token, "([A-Z]*)(\d*)([^\D])", RegexOptions.IgnoreCase))
-                {
-
-                }
+                //TODO: Implement Algorithm here                
             }
-            return 0;
+
+
+            if (operators.Count == 0 && values.Count == 1)
+            {
+                return values.Pop();
+            }
+            else if (operators.Count > 1 || values.Count>2)
+                throw new ArgumentException("Invalid Expression");
+            else
+            {
+                if (operators.checkPeek("-"))
+                {
+                    operators.Pop();
+                    int subtractor = values.Pop();
+                    return values.Pop() - subtractor;
+                }
+                else if (operators.checkPeek("+"))
+                {
+                    return values.Pop() + values.Pop();
+                }
+
+                throw new ArgumentException("Invalid Expression");    
+            }
+        }
+        /// <summary>
+        /// This method takes a token that has a value, (can be passed value of variable from lookup or normal int,
+        /// Then performs the necessary operations to evaluate it or push it onto the stack
+        /// </summary>
+        /// <param name="tokenValue">Value of the current token</param>
+        private static void hasValueOperations(int tokenValue)
+        {
+            if (operators.checkPeek("*"))
+            {
+                operators.Pop();
+                int result = values.Pop() * tokenValue;
+                values.Push(result);
+            }
+            else if (operators.checkPeek("/"))
+            {
+                if (tokenValue == 0)
+                {
+                    throw new ArgumentException("Divide by zero error!");
+                }
+                else
+                {
+                    operators.Pop();
+                    int result = values.Pop() / tokenValue;
+                    values.Push(result);
+                }
+
+            }
+            else
+            {
+                values.Push(tokenValue);
+            }
         }
 
     }
