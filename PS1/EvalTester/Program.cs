@@ -18,7 +18,7 @@ namespace EvalTester
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            Console.WriteLine(Evaluator.Evaluate("20/5", NoVarsTestLookup));
+            Console.WriteLine(Evaluator.Evaluate("20 - 15", NoVarsTestLookup));
             System.Console.Read();
         }
         /// <summary>

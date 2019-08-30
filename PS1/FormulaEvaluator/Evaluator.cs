@@ -50,12 +50,20 @@ namespace FormulaEvaluator
                 {
                     hasValueOperations(variableEvaluator(token));
                 }
-                else if (token == "+")
+                else if (token == "+"||token == "-")
                 {
-                    if (operators.checkPeek("+") || operators.checkPeek("+"))
+                    if (operators.checkPeek("-"))
                     {
-
+                        operators.Pop();
+                        int subtractor = values.Pop();
+                        values.Push(values.Pop() - subtractor);                        
                     }
+                    else if (operators.checkPeek("+"))
+                    {
+                        operators.Pop();
+                        values.Push(values.Pop() + values.Pop());                        
+                    }
+                    operators.Push(token);
                 }
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
