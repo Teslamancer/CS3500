@@ -44,33 +44,26 @@ namespace FormulaEvaluator
                 {
                     continue;
                 }
+                else if(token == "(")
+                {
+                    operators.Push(token);
+                }
                 else if (token == "*" || token == "/")
                     operators.Push(token);
                 else if (Regex.IsMatch(token, @"^[A-Z]+\d+[^\D]*$", RegexOptions.IgnoreCase))
                 {
-                    hasValueOperations(variableEvaluator(token));
+                    isValueTokenOperations(variableEvaluator(token));
                 }
                 else if (token == "+"||token == "-")
                 {
-                    if (operators.checkPeek("-"))
-                    {
-                        operators.Pop();
-                        int subtractor = values.Pop();
-                        values.Push(values.Pop() - subtractor);                        
-                    }
-                    else if (operators.checkPeek("+"))
-                    {
-                        operators.Pop();
-                        values.Push(values.Pop() + values.Pop());                        
-                    }
-                    operators.Push(token);
+                    performAddSub(token);
                 }
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
                 {
-                    hasValueOperations(tokenValue);
+                    isValueTokenOperations(tokenValue);
                 }
-                //TODO: Implement Algorithm here                
+                              
             }
 
 
@@ -101,7 +94,7 @@ namespace FormulaEvaluator
         /// Then performs the necessary operations to evaluate it or push it onto the stack
         /// </summary>
         /// <param name="tokenValue">Value of the current token</param>
-        private static void hasValueOperations(int tokenValue)
+        private static void isValueTokenOperations(int tokenValue)
         {
             if (operators.checkPeek("*"))
             {
@@ -127,6 +120,26 @@ namespace FormulaEvaluator
             {
                 values.Push(tokenValue);
             }
+        }
+
+        /// <summary>
+        /// Performs validation for addition or subtraction, then performs the necessary operation
+        /// </summary>
+        /// <param name="token">current token (should be "+" or "-")</param>
+        private static void performAddSub(String token)
+        {
+            if (values.Count >1 && operators.checkPeek("-"))
+            {
+                operators.Pop();
+                int subtractor = values.Pop();
+                values.Push(values.Pop() - subtractor);
+            }
+            else if (values.Count > 1 && operators.checkPeek("+"))
+            {
+                operators.Pop();
+                values.Push(values.Pop() + values.Pop());
+            }
+            operators.Push(token);
         }
 
     }
