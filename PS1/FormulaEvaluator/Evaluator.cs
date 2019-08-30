@@ -44,28 +44,16 @@ namespace FormulaEvaluator
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
                 {
-                    if (operators.Peek() == "*")
-                    {
-                        if (values.Count == 0)
-                        {
-                            throw new ArgumentException("Invalid Expression!");
-                        }
-                        else
-                        {
-                            int result = int.Parse(values.Pop()) * tokenValue;
-                            values.Push(result.ToString());
-                        }
-
+                    if (operators.checkPeek("*"))
+                    { 
+                        int result = int.Parse(values.Pop()) * tokenValue;
+                        values.Push(result.ToString());
                     }
-                    else if (operators.Peek() == "/")
+                    else if (operators.checkPeek("/"))
                     {
                         if (tokenValue == 0)
                         {
                             throw new ArgumentException("Divide by zero error!");
-                        }
-                        else if (values.Count == 0)
-                        {
-                            throw new ArgumentException("Invalid Expression!");
                         }
                         else
                         {
@@ -84,5 +72,30 @@ namespace FormulaEvaluator
             return 0;
         }
 
+    }
+}
+
+/// <summary>
+/// Contains extension methods for the generic stack class
+/// </summary>
+public static class StackUtils
+{
+    /// <summary>
+    /// Checks if the stack is empty, then checks if the top element is equal to the given string
+    /// </summary>
+    /// <typeparam name="T">Stack type</typeparam>
+    /// <param name="stack">stack to use</param>
+    /// <param name="token">String to check against</param>
+    /// <returns>True if top element of stack equals the string, false otherwise</returns>
+    public static bool checkPeek<T>(this Stack<T> stack, String token)
+    {
+        if(stack.Count > 0)
+        {
+            if(stack.Peek().Equals(token))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
