@@ -18,7 +18,8 @@ namespace EvalTester
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            Evaluator.Evaluate("1*1", NoVarsTestLookup);
+            Evaluator.Evaluate("\r1 *\t1\n", NoVarsTestLookup);
+            System.Console.Read();
         }
         /// <summary>
         /// Lookup Method that expects no variables, throws an ArgumentException if used

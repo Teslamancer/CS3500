@@ -32,6 +32,7 @@ namespace FormulaEvaluator
         /// <returns>The result of mathematical evaluation of the expression</returns>
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
+            exp = Regex.Replace(exp, @"[\t\s\n\r]", "", RegexOptions.Multiline);
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
             foreach (String token in substrings)
             {
@@ -68,6 +69,10 @@ namespace FormulaEvaluator
                     }
                 }
                 //TODO: Implement Algorithm here
+                else if(Regex.IsMatch(token, "([A-Z]*)(\d*)([^\D])", RegexOptions.IgnoreCase))
+                {
+
+                }
             }
             return 0;
         }
