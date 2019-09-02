@@ -44,35 +44,63 @@ namespace FormulaEvaluator
                 {
                     continue;
                 }
+                //Checks if token is a left paranthesis and pushes it onto the operators stack
                 else if(token == "(")
                 {
                     operators.Push(token);
                 }
+                //Checks if the token is * or / and then pushes it onto the operators stack
                 else if (token == "*" || token == "/")
                     operators.Push(token);
+                //Checks if the token is a variable matching the pattern (LettersDigits)
                 else if (Regex.IsMatch(token, @"^[A-Z]+\d+[^\D]*$", RegexOptions.IgnoreCase))
                 {
-                    isValueTokenOperations(variableEvaluator(token));
+                    performMultDiv(variableEvaluator(token));
                 }
+                //Checks if token is a + or - and then performs the operations accordingly
                 else if (token == "+"||token == "-")
                 {
                     performAddSub(token);
+                    operators.Push(token);
                 }
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
                 {
-                    isValueTokenOperations(tokenValue);
+                    performMultDiv(tokenValue);
+                }
+                else if (token == ")")
+                {
+                    if (operators.checkPeek("+"))
+                    {
+                        performAddSub("+");                        
+                    }
+                    else if (operators.checkPeek("-"))
+                    {
+                        performAddSub("-");
+                    }
+                    if (operators.checkPeek(")"))
+                    {
+                        operators.Pop();
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Invalid Expression");
+                    }
+                    performMultDiv(values.Pop());
                 }
                               
             }
 
-
+            //This is the End of Expression behavior
+            //Checks if there are no operators left and if there is one value left
             if (operators.Count == 0 && values.Count == 1)
             {
                 return values.Pop();
             }
+            //checks if there is more than one operator left or more than two values left
             else if (operators.Count > 1 || values.Count>2)
                 throw new ArgumentException("Invalid Expression");
+            //Performs final operation and returns result
             else
             {
                 if (operators.checkPeek("-"))
@@ -94,7 +122,7 @@ namespace FormulaEvaluator
         /// Then performs the necessary operations to evaluate it or push it onto the stack
         /// </summary>
         /// <param name="tokenValue">Value of the current token</param>
-        private static void isValueTokenOperations(int tokenValue)
+        private static void performMultDiv(int tokenValue)
         {
             if (operators.checkPeek("*"))
             {
@@ -138,8 +166,7 @@ namespace FormulaEvaluator
             {
                 operators.Pop();
                 values.Push(values.Pop() + values.Pop());
-            }
-            operators.Push(token);
+            }            
         }
 
     }
