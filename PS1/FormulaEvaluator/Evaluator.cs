@@ -78,7 +78,7 @@ namespace FormulaEvaluator
                     {
                         performAddSub("-");
                     }
-                    if (operators.checkPeek(")"))
+                    if (operators.checkPeek("("))
                     {
                         operators.Pop();
                     }
