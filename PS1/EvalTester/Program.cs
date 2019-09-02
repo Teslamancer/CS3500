@@ -18,6 +18,8 @@ namespace EvalTester
         /// <param name="args"></param>
         static void Main(string[] args)
         {
+            //Console.WriteLine(Evaluator.Evaluate("1 + A1", BasicVarsLookup));
+            testBasicExp();
             testVars();
 
 
@@ -28,7 +30,271 @@ namespace EvalTester
         /// </summary>
         public static void testVars()
         {
-            Console.WriteLine(Evaluator.Evaluate("1 + A1", NoVarsTestLookup));
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("1 + A1", NoVarsTestLookup));
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine("Variable with no value exception caught.");
+            }
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("1 + A1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int + Var");
+            }
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("1 - A1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int - Var");
+            }
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("1 * A1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int * Var");
+            }
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("1 / A1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int / Var");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 + 1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var + int");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 - 1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var - int");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 * 1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var * int");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 / 1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var / int");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 + B1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var + Var");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 - B1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var - Var");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 * B1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var * Var");
+            }
+
+            try
+            {
+                Console.WriteLine(Evaluator.Evaluate("A1 / B1", BasicVarsLookup));
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: Var / Var");
+            }
+
+        }
+        /// <summary>
+        /// Tests basic expression behaviors using integers
+        /// </summary>
+        public static void testBasicExp()
+        {
+            try
+            {
+                int exp=Evaluator.Evaluate("1 + 1", BasicVarsLookup);
+                if(exp != 2)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int + int");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("1 - 1", BasicVarsLookup);
+                if (exp != 0)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int - int");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("1 * 1", BasicVarsLookup);
+                if (exp != 1)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int * int");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("1 / 1", BasicVarsLookup);
+                if (exp != 1)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int / int");
+            }
+        }
+        /// <summary>
+        /// Tests operations with parentheses
+        /// </summary>
+        public static void testParentheses()
+        {
+            try
+            {
+                int exp = Evaluator.Evaluate("(1 + 1) -2", BasicVarsLookup);
+                if (exp != 0)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: (int + int) - int");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("(1 + 1) * 3", BasicVarsLookup);
+                if (exp != 6)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: (int + int) * int");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("(1 + 1) / 2", BasicVarsLookup);
+                if (exp != 1)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: (int + int) / int");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("2 / (1 + 1)", BasicVarsLookup);
+                if (exp != 1)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int / (int + int)");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("3 * (1 + 1)", BasicVarsLookup);
+                if (exp != 6)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int * (int + int)");
+            }
+
+            try
+            {
+                int exp = Evaluator.Evaluate("2 - (1 + 1)", BasicVarsLookup);
+                if (exp != 0)
+                {
+                    throw new Exception("Math not working");
+                }
+                Console.WriteLine(exp);
+            }
+            catch
+            {
+                Console.WriteLine("Basic Variable Evaluation unsuccessful: int - (int + int)");
+            }
+
+
         }
 
 

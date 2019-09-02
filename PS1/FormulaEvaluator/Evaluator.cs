@@ -34,7 +34,7 @@ namespace FormulaEvaluator
         {
             //removes whitespace of all kinds from expression
             exp = Regex.Replace(exp, @"[\t\s\n\r]", "", RegexOptions.Multiline);
-            System.Console.WriteLine(exp);
+            //System.Console.WriteLine(exp);
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
             foreach (String token in substrings)
             {
@@ -111,6 +111,7 @@ namespace FormulaEvaluator
                 }
                 else if (operators.checkPeek("+"))
                 {
+                    operators.Pop();
                     return values.Pop() + values.Pop();
                 }
 
