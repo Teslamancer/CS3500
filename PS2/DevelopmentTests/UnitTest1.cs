@@ -114,6 +114,19 @@ namespace DevelopmentTests
             t.ReplaceDependents("a", replacements);
             Assert.AreEqual(12, t.Size);
 
+            DependencyGraph dg = new DependencyGraph();
+            dg.AddDependency("a", "b");
+            dg.AddDependency("a", "c");
+            dg.AddDependency("b", "c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+            dg.AddDependency("f", "b");
+            dg.AddDependency("g", "b");
+            dg.ReplaceDependees("b", replacements);
+
+            Assert.AreEqual(12, t.Size);
+
+
         }
 
 
@@ -395,8 +408,31 @@ namespace DevelopmentTests
             dg.AddDependency("a", "d");
             dg.AddDependency("a", "b");
             Assert.AreEqual(3, new HashSet<String>(dg.GetDependents("a")).Count);
+        }
+        /// <summary>
+        /// Tests the ReplaceDependees function
+        /// </summary>
+        [TestMethod()]
+        public void testReplaceDependees()
+        {
+            DependencyGraph dg = new DependencyGraph();
+            dg.AddDependency("a", "b");
+            dg.AddDependency("a", "c");
+            dg.AddDependency("b", "c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+            dg.AddDependency("f", "b");
+            dg.AddDependency("g", "b");
 
+            List<String> replacements = new List<String>();
 
+            for (int i = 0; i < 10; i++)
+            {
+                replacements.Add(i.ToString());
+            }
+
+            dg.ReplaceDependees("b", replacements);
+            Assert.AreEqual(10, new HashSet<String>(dg.GetDependees("b")).Count);
 
         }
     }

@@ -250,6 +250,32 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
+            if (dependeeDict.ContainsKey(s))
+            {
+                foreach (String d in dependeeDict[s])
+                {
+                    dependentDict[d].Remove(s);
+                    if (dependentDict[d].Count == 0)
+                        dependentDict.Remove(d);
+                }
+                Size -= dependeeDict[s].Count;
+                dependeeDict[s] = new HashSet<String>(newDependees);
+            }
+            else
+            {
+                dependeeDict.Add(s, new HashSet<String>(newDependees));
+            }
+            foreach (String t in dependeeDict[s])
+            {
+                if (dependentDict.ContainsKey(t))
+                    dependentDict[t].Add(s);
+                else
+                {
+                    dependentDict.Add(t, new HashSet<string>());
+                    dependentDict[t].Add(s);
+                }
+            }
+            Size += dependeeDict[s].Count;
         }
 
     }
