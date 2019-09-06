@@ -259,6 +259,85 @@ namespace DevelopmentTests
                 Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
             }
         }
+        /// <summary>
+        /// graph[string] returns number of dependents
+        /// </summary>
+        [TestMethod()]
+        public void testGetNumberDependents()
+        {
+            DependencyGraph dg = new DependencyGraph();
 
+            Assert.AreEqual(0, dg["a"]);
+            dg.AddDependency("a", "b");
+            Assert.AreEqual(1, dg["a"]);
+            dg.AddDependency("a", "c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+            Assert.AreEqual(3, dg["a"]);
+        }
+
+        /// <summary>
+        /// tests function to find if a node has dependents
+        /// </summary>
+        [TestMethod()]
+        public void testHasDependents()
+        {
+            DependencyGraph dg = new DependencyGraph();
+
+            Assert.IsFalse(dg.HasDependents("a"));
+
+            dg.AddDependency("a", "b");
+            Assert.IsTrue(dg.HasDependents("a"));
+            Assert.IsFalse(dg.HasDependents("b"));
+        }
+
+        /// <summary>
+        /// tests function to find if a node has dependees
+        /// </summary>
+        [TestMethod()]
+        public void testHasDependees()
+        {
+            DependencyGraph dg = new DependencyGraph();
+
+            Assert.IsFalse(dg.HasDependees("a"));
+
+            dg.AddDependency("a", "b");
+            Assert.IsTrue(dg.HasDependees("b"));
+            Assert.IsFalse(dg.HasDependees("a"));
+        }
+
+        /// <summary>
+        /// Tests adding pairs to the graph
+        /// </summary>
+        [TestMethod()]
+        public void testAddDependencies()
+        {
+            DependencyGraph dg = new DependencyGraph();
+
+            dg.AddDependency("a", "b");
+            dg.AddDependency("a", "c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+
+            Assert.AreEqual(3, dg["a"]);
+        }
+
+        /// <summary>
+        /// Tests removing dependencies from graph
+        /// </summary>
+        [TestMethod()]
+        public void testRemoveDependencies()
+        {
+            DependencyGraph dg = new DependencyGraph();
+            dg.AddDependency("a", "b");
+            dg.AddDependency("a", "c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+
+            Assert.AreEqual(3, dg["a"]);
+
+            dg.RemoveDependency("a", "b");
+            Assert.AreEqual(2, dg["a"]);
+        }
     }
 }

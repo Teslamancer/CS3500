@@ -41,11 +41,17 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class DependencyGraph
     {
+        //Creates a Dictionary of Hashsets, where for each dependee key, there is a hashset of the dependents as the value
+        private Dictionary<String, HashSet<String>> dependentDict;
+        //Creates a Dictionary of Hashsets, where for each dependent key, there is a hashset of the dependees as the value
+        private Dictionary<String, HashSet<String>> dependeeDict;
         /// <summary>
         /// Creates an empty DependencyGraph.
         /// </summary>
         public DependencyGraph()
         {
+            dependentDict = new Dictionary<string, HashSet<string>>();
+            dependeeDict = new Dictionary<string, HashSet<string>>();
         }
 
 
@@ -55,6 +61,7 @@ namespace SpreadsheetUtilities
         public int Size
         {
             get { return 0; }
+            private set { Size = value; }
         }
 
 
@@ -67,7 +74,21 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int this[string s]
         {
-            get { return 0; }
+            get { return getDependentSetSize(s); }
+        }
+
+        /// <summary>
+        /// Returns the number of Dependents for a given dependee
+        /// </summary>
+        /// <param name="s">Dependee to search</param>
+        /// <returns>number of dependents</returns>
+        private int getDependentSetSize(string s)
+        {
+            if (dependentDict.ContainsKey(s))
+                return dependentDict[s].Count;
+            else
+                return 0;
+
         }
 
 
@@ -76,7 +97,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependents(string s)
         {
-            return false;
+            return this[s] != 0;
         }
 
 
@@ -85,7 +106,10 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependees(string s)
         {
-            return false;
+            if (dependeeDict.ContainsKey(s))
+                return dependeeDict[s].Count != 0;
+            else
+                return false;
         }
 
 
@@ -118,6 +142,33 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
+            if (dependentDict.ContainsKey(s))
+            {
+                dependentDict[s].Add(t);
+                if (dependeeDict.ContainsKey(t))
+                {
+                    dependeeDict[t].Add(s);
+                }
+                else
+                {
+                    dependeeDict.Add(t, new HashSet<string>());
+                    dependeeDict[t].Add(s);
+                }
+            }
+            else
+            {
+                dependentDict.Add(s, new HashSet<string>());
+                dependentDict[s].Add(t);
+                if (dependeeDict.ContainsKey(t))
+                {
+                    dependeeDict[t].Add(s);
+                }
+                else
+                {
+                    dependeeDict.Add(t, new HashSet<string>());
+                    dependeeDict[t].Add(s);
+                }
+            }
         }
 
 
@@ -128,6 +179,18 @@ namespace SpreadsheetUtilities
         /// <param name="t"></param>
         public void RemoveDependency(string s, string t)
         {
+            if (dependentDict.ContainsKey(s) && dependentDict[s].Contains(t))
+            {
+                dependentDict[s].Remove(t);
+                if (dependentDict[s].Count == 0)
+                    dependentDict.Remove(s);                
+            }
+            if (dependeeDict.ContainsKey(t) && dependeeDict[t].Contains(s))
+            {
+                dependeeDict[t].Remove(s);
+                if (dependeeDict[t].Count == 0)
+                    dependeeDict.Remove(t);
+            }
         }
 
 
