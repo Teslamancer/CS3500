@@ -381,6 +381,9 @@ namespace DevelopmentTests
             dg.AddDependency("b","c");
             dg.AddDependency("a", "d");
             dg.AddDependency("a", "b");
+            dg.AddDependency("e", "b");
+            dg.AddDependency("a", "0");
+            dg.AddDependency("b", "0");
 
             List<String> replacements = new List<String>();
 
