@@ -88,6 +88,10 @@ namespace FormulaEvaluator
                     }
                     performMultDiv(values.Pop());
                 }
+                else
+                {
+                    throw new ArgumentException("Invalid Variable!");
+                }
                               
             }
 
@@ -98,7 +102,7 @@ namespace FormulaEvaluator
                 return values.Pop();
             }
             //checks if there is more than one operator left or more than two values left
-            else if (operators.Count > 1 || values.Count>2)
+            else if (operators.Count > 1 || values.Count>2 || (operators.Count ==1 && values.Count<2))
                 throw new ArgumentException("Invalid Expression");
             //Performs final operation and returns result
             else

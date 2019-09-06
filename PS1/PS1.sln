@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvalTester", "EvalTester\EvalTester.csproj", "{A7E3BDB0-1B41-49E6-AFD5-60E97EEB5AC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormulaEvaluator", "FormulaEvaluator\FormulaEvaluator.csproj", "{09A2D1BA-9B1B-4FFB-964F-71D3132A7B94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormulaEvaluator", "FormulaEvaluator\FormulaEvaluator.csproj", "{09A2D1BA-9B1B-4FFB-964F-71D3132A7B94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{B1284280-C712-4206-89EB-801C2CD94B9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{09A2D1BA-9B1B-4FFB-964F-71D3132A7B94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09A2D1BA-9B1B-4FFB-964F-71D3132A7B94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09A2D1BA-9B1B-4FFB-964F-71D3132A7B94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1284280-C712-4206-89EB-801C2CD94B9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1284280-C712-4206-89EB-801C2CD94B9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1284280-C712-4206-89EB-801C2CD94B9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1284280-C712-4206-89EB-801C2CD94B9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

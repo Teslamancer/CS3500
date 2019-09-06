@@ -35,7 +35,7 @@ namespace EvalTester
             {
                 Console.WriteLine(Evaluator.Evaluate("1 + A1", NoVarsTestLookup));
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 Console.WriteLine("Variable with no value exception caught.");
             }
