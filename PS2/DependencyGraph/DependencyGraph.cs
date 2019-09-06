@@ -61,7 +61,7 @@ namespace SpreadsheetUtilities
         public int Size
         {
             get { return 0; }
-            private set { Size = value; }
+            //private set { Size = value; }
         }
 
 
@@ -74,18 +74,18 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int this[string s]
         {
-            get { return getDependentSetSize(s); }
+            get { return getDependeeSetSize(s); }
         }
 
         /// <summary>
-        /// Returns the number of Dependents for a given dependee
+        /// Returns the number of Dependees for a given dependent
         /// </summary>
         /// <param name="s">Dependee to search</param>
         /// <returns>number of dependents</returns>
-        private int getDependentSetSize(string s)
+        private int getDependeeSetSize(string s)
         {
-            if (dependentDict.ContainsKey(s))
-                return dependentDict[s].Count;
+            if (dependeeDict.ContainsKey(s))
+                return dependeeDict[s].Count;
             else
                 return 0;
 
@@ -97,7 +97,10 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependents(string s)
         {
-            return this[s] != 0;
+            if (dependentDict.ContainsKey(s))
+                return dependentDict[s].Count != 0;
+            else
+                return false;
         }
 
 
@@ -106,10 +109,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependees(string s)
         {
-            if (dependeeDict.ContainsKey(s))
-                return dependeeDict[s].Count != 0;
-            else
-                return false;
+            return this[s] != 0;
         }
 
 
@@ -118,7 +118,10 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return null;
+            if (dependentDict.ContainsKey(s))
+                return dependentDict[s];
+            else
+                return new HashSet<String>();
         }
 
         /// <summary>
@@ -126,7 +129,10 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return null;
+            if (dependeeDict.ContainsKey(s))
+                return dependeeDict[s];
+            else
+                return new HashSet<String>();
         }
 
 
@@ -169,6 +175,7 @@ namespace SpreadsheetUtilities
                     dependeeDict[t].Add(s);
                 }
             }
+            //this.Size++;
         }
 
 
@@ -183,14 +190,18 @@ namespace SpreadsheetUtilities
             {
                 dependentDict[s].Remove(t);
                 if (dependentDict[s].Count == 0)
-                    dependentDict.Remove(s);                
+                    dependentDict.Remove(s);
+               // this.Size--;
             }
+            
             if (dependeeDict.ContainsKey(t) && dependeeDict[t].Contains(s))
             {
                 dependeeDict[t].Remove(s);
                 if (dependeeDict[t].Count == 0)
                     dependeeDict.Remove(t);
+              //  this.Size--;
             }
+            
         }
 
 
@@ -199,7 +210,34 @@ namespace SpreadsheetUtilities
         /// t in newDependents, adds the ordered pair (s,t).
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
-        {
+        {            
+            if (dependentDict.ContainsKey(s))
+            {
+                foreach(String d in dependentDict[s])
+                {
+                    dependeeDict[d].Remove(s);
+                   // this.Size--;
+                }
+                dependentDict[s] = new HashSet<String>(newDependents);
+            }
+            else
+            {
+                dependentDict.Add(s, new HashSet<String>(newDependents));
+            }
+            foreach(String t in dependentDict[s])
+            {
+                if (dependeeDict.ContainsKey(t))
+                    dependeeDict[t].Add(s);
+                else
+                {
+                    dependeeDict.Add(t, new HashSet<string>());
+                    dependeeDict[t].Add(s);
+                }
+              //  this.Size++;
+                    
+
+            }
+
         }
 
 

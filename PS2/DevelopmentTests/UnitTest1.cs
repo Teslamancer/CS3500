@@ -102,6 +102,8 @@ namespace DevelopmentTests
             t.AddDependency("c", "b");
             t.AddDependency("b", "d");
             Assert.AreEqual(4, t.Size);
+            t.RemoveDependency("a", "b");
+            Assert.AreEqual(3, t.Size);
         }
 
 
@@ -263,17 +265,17 @@ namespace DevelopmentTests
         /// graph[string] returns number of dependents
         /// </summary>
         [TestMethod()]
-        public void testGetNumberDependents()
+        public void testGetNumberDependees()
         {
             DependencyGraph dg = new DependencyGraph();
 
-            Assert.AreEqual(0, dg["a"]);
+            Assert.AreEqual(0, dg["b"]);
             dg.AddDependency("a", "b");
-            Assert.AreEqual(1, dg["a"]);
-            dg.AddDependency("a", "c");
-            dg.AddDependency("a", "d");
+            Assert.AreEqual(1, dg["b"]);
+            dg.AddDependency("c", "b");
+            dg.AddDependency("d", "b");
             dg.AddDependency("a", "b");
-            Assert.AreEqual(3, dg["a"]);
+            Assert.AreEqual(3, dg["b"]);
         }
 
         /// <summary>
@@ -319,7 +321,8 @@ namespace DevelopmentTests
             dg.AddDependency("a", "d");
             dg.AddDependency("a", "b");
 
-            Assert.AreEqual(3, dg["a"]);
+            Assert.AreEqual(3, new HashSet<String>(dg.GetDependents("a")).Count);
+            
         }
 
         /// <summary>
@@ -334,10 +337,57 @@ namespace DevelopmentTests
             dg.AddDependency("a", "d");
             dg.AddDependency("a", "b");
 
-            Assert.AreEqual(3, dg["a"]);
+            Assert.AreEqual(3, new HashSet<String>(dg.GetDependents("a")).Count);
 
             dg.RemoveDependency("a", "b");
-            Assert.AreEqual(2, dg["a"]);
+            Assert.AreEqual(2, new HashSet<String>(dg.GetDependents("a")).Count);
+            dg.RemoveDependency("a", "c");
+            dg.RemoveDependency("a", "d");
+            Assert.AreEqual(0, new HashSet<String>(dg.GetDependents("a")).Count);
+        }
+
+        /// <summary>
+        /// Tests the replacement of dependents with a new list
+        /// </summary>
+        [TestMethod()]
+        public void testReplaceDependencies()
+        {
+            DependencyGraph dg = new DependencyGraph();
+            dg.AddDependency("a", "b");
+            dg.AddDependency("a", "c");
+            dg.AddDependency("b","c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+
+            List<String> replacements = new List<String>();
+
+            for(int i = 0; i < 10; i++)
+            {
+                replacements.Add(i.ToString());
+            }
+
+            dg.ReplaceDependents("a", replacements);
+            Assert.AreEqual(10, new HashSet<String>(dg.GetDependents("a")).Count);
+
+        }
+
+        /// <summary>
+        /// Tests getting the Dependents set
+        /// </summary>
+        [TestMethod()]
+        public void testGetDependents()
+        {
+            DependencyGraph dg = new DependencyGraph();
+
+            Assert.AreEqual(0, new HashSet<String>(dg.GetDependents("a")).Count);
+            dg.AddDependency("a", "b");
+            dg.AddDependency("a", "c");
+            dg.AddDependency("a", "d");
+            dg.AddDependency("a", "b");
+            Assert.AreEqual(3, new HashSet<String>(dg.GetDependents("a")).Count);
+
+
+
         }
     }
 }
