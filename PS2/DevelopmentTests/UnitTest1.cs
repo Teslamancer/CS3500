@@ -104,6 +104,16 @@ namespace DevelopmentTests
             Assert.AreEqual(4, t.Size);
             t.RemoveDependency("a", "b");
             Assert.AreEqual(3, t.Size);
+            List<String> replacements = new List<String>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                replacements.Add(i.ToString());
+            }
+
+            t.ReplaceDependents("a", replacements);
+            Assert.AreEqual(12, t.Size);
+
         }
 
 
