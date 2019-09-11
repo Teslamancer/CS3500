@@ -20,8 +20,7 @@ namespace FormulaEvaluator
         /// <returns>Value of the variable as an int</returns>
         public delegate int Lookup(String v);
 
-        private static Stack<int> values = new Stack<int>();
-        private static Stack<String> operators = new Stack<String>();
+        
 
         /// <summary>
         /// Given a String formula, this method evaluates the formula mathematically,
@@ -32,8 +31,11 @@ namespace FormulaEvaluator
         /// <returns>The result of mathematical evaluation of the expression</returns>
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
-            //removes whitespace of all kinds from expression
-            exp = Regex.Replace(exp, @"[\t\s\n\r]", "", RegexOptions.Multiline);
+
+            Stack<int> values = new Stack<int>();
+            Stack<String> operators = new Stack<String>();
+        //removes whitespace of all kinds from expression
+        exp = Regex.Replace(exp, @"[\t\s\n\r]", "", RegexOptions.Multiline);
             //System.Console.WriteLine(exp);
             string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
             foreach (String token in substrings)
@@ -55,28 +57,28 @@ namespace FormulaEvaluator
                 //Checks if the token is a variable matching the pattern (LettersDigits)
                 else if (Regex.IsMatch(token, @"^[A-Z]+\d+[^\D]*$", RegexOptions.IgnoreCase))
                 {
-                    performMultDiv(variableEvaluator(token));
+                    performMultDiv(variableEvaluator(token), operators, values);
                 }
                 //Checks if token is a + or - and then performs the operations accordingly
                 else if (token == "+"||token == "-")
                 {
-                    performAddSub(token);
+                    performAddSub(token, operators, values);
                     operators.Push(token);
                 }
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
                 {
-                    performMultDiv(tokenValue);
+                    performMultDiv(tokenValue, operators, values);
                 }
                 else if (token == ")")
                 {
                     if (operators.checkPeek("+"))
                     {
-                        performAddSub("+");                        
+                        performAddSub("+", operators, values);                        
                     }
                     else if (operators.checkPeek("-"))
                     {
-                        performAddSub("-");
+                        performAddSub("-", operators, values);
                     }
                     if (operators.checkPeek("("))
                     {
@@ -86,7 +88,7 @@ namespace FormulaEvaluator
                     {
                         throw new ArgumentException("Invalid Expression");
                     }
-                    performMultDiv(values.Pop());
+                    performMultDiv(values.Pop(), operators, values);
                 }
                 else
                 {
@@ -99,6 +101,7 @@ namespace FormulaEvaluator
             //Checks if there are no operators left and if there is one value left
             if (operators.Count == 0 && values.Count == 1)
             {
+                
                 return values.Pop();
             }
             //checks if there is more than one operator left or more than two values left
@@ -121,13 +124,14 @@ namespace FormulaEvaluator
 
                 throw new ArgumentException("Invalid Expression");    
             }
+            
         }
         /// <summary>
         /// This method takes a token that has a value, (can be passed value of variable from lookup or normal int,
         /// Then performs the necessary operations to evaluate it or push it onto the stack
         /// </summary>
         /// <param name="tokenValue">Value of the current token</param>
-        private static void performMultDiv(int tokenValue)
+        private static void performMultDiv(int tokenValue, Stack<String> operators, Stack<int> values)
         {
             if (operators.checkPeek("*"))
             {
@@ -159,7 +163,7 @@ namespace FormulaEvaluator
         /// Performs validation for addition or subtraction, then performs the necessary operation
         /// </summary>
         /// <param name="token">current token (should be "+" or "-")</param>
-        private static void performAddSub(String token)
+        private static void performAddSub(String token, Stack<String> operators, Stack<int> values)
         {
             if (values.Count >1 && operators.checkPeek("-"))
             {
