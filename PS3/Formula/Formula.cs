@@ -51,6 +51,9 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class Formula
     {
+        private readonly String expression;
+        private List<String> tokens;
+        private List<String> vars;
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
         /// described in the class comment.  If the expression is syntactically invalid,
@@ -88,8 +91,26 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-            //splits formula into substrings 
-            string[] substrings = Regex.Split(formula, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
+            this.tokens = new List<String>();
+            String baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";
+
+            //Iterates through tokens in expression and validates them
+            foreach (String t in GetTokens(formula))
+            {
+                if (Regex.IsMatch(t, baseVariable))
+                {
+                    if (Regex.IsMatch(normalize(t),baseVariable) && isValid(normalize(t)))
+                    {
+                        this.tokens.Add(t);
+                        this.vars.Add(normalize(t));
+                    }                        
+                    else
+                        throw new FormulaFormatException("The provided variable " + t + " does not meet the criteria specified. Please change this variable to a valid one.");
+                }
+                else
+                    this.tokens.Add(double.Parse(t).ToString());                
+            }
+            this.expression = formula;
         }
 
         /// <summary>
