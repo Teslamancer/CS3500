@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpreadsheetUtilities;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace FormulaTest
@@ -55,6 +56,27 @@ namespace FormulaTest
         public void testNormalizedInvalidVariables()
         {
             Formula f = new Formula("_a2 + _3", upperNormalize, onlyCellValid);
+        }
+        /// <summary>
+        /// Tests the getVars Function for normalized variables
+        /// </summary>
+        [TestMethod()]
+        public void testGetVars()
+        {
+            Formula f = new Formula("x2 + y1", s => s.ToUpper(), s => true);
+            List<String> contains = new List<String>(f.GetVariables());
+            Assert.IsTrue(contains.Contains("X2"));
+            Assert.IsTrue(contains.Contains("Y1"));
+            Assert.IsFalse(contains.Contains("y1"));
+        }
+        /// <summary>
+        /// Tests toString Method
+        /// </summary>
+        [TestMethod()]
+        public void testToString()
+        {
+            Formula f = new Formula("x2  +  4 *Y4", s => s.ToUpper(), s => true);
+            Assert.AreEqual("X2+4*Y4", f.ToString());
         }
 
         [TestMethod(), Timeout(5000)]
@@ -117,7 +139,7 @@ namespace FormulaTest
         [TestMethod(), Timeout(5000)]
         public void TestLeftToRight()
         {
-            Formula f = new Formula("2*6++3");
+            Formula f = new Formula("2*6+3");
             Assert.AreEqual(15d, f.Evaluate(s => 0));
         }
 
@@ -230,17 +252,18 @@ namespace FormulaTest
 
 
         [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
         public void TestEmpty()
         {
-            Formula f = new Formula("3X");
-            Assert.IsInstanceOfType(f.Evaluate(s => 0), typeof(FormulaError));
+            Formula f = new Formula("");
+            f.Evaluate(s => 0);
         }
 
         [TestMethod(), Timeout(5000)]
         public void TestComplexMultiVar()
         {
-            Formula f = new Formula("y1*3-8/2+4*(8-9*2)/14*x7");
-            Assert.AreEqual(6, (int)f.Evaluate(s => (s == "x7") ? 1 : 4));
+            Formula f = new Formula("y1*3-8/2+4*(8-9*2)/5*x7");
+            Assert.AreEqual(-33d, f.Evaluate(s => (s == "x7") ? 4 : 1));
         }
 
         [TestMethod(), Timeout(5000)]

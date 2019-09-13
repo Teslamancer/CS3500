@@ -98,6 +98,7 @@ namespace SpreadsheetUtilities
             string isOperator = @"^[-+*/()]$";
             bool validVar = true;
             string invalidVarStart= "";
+            StringBuilder sb = new StringBuilder();
             //Iterates through tokens in expression and validates them
             foreach (String t in GetTokens(formula))
             {
@@ -106,6 +107,7 @@ namespace SpreadsheetUtilities
                     this.tokens.Add(double.Parse(t).ToString());
                     validVar = false;
                     invalidVarStart = t;
+                    sb.Append(t);
                 }
                 else if (Regex.IsMatch(t, baseVariable))
                 {
@@ -115,8 +117,9 @@ namespace SpreadsheetUtilities
                     }
                     if (Regex.IsMatch(normalize(t), baseVariable) && isValid(normalize(t)))
                     {
-                        this.tokens.Add(t);
+                        this.tokens.Add(normalize(t));
                         this.vars.Add(normalize(t));
+                        sb.Append(normalize(t));
                     }
                     else
                         throw new FormulaFormatException("The provided variable " + t + " does not meet the criteria specified. Please change this variable to a valid one.");
@@ -125,11 +128,14 @@ namespace SpreadsheetUtilities
                 {
                     this.tokens.Add(t);
                     validVar = true;
+                    sb.Append(t);
                 }
                 else
                     throw new FormulaFormatException("The provided variable " + t + " does not meet the basic criteria for a variable. Please change this variable to a valid one.");
             }
-            this.expression = formula;
+            this.expression = sb.ToString();
+            if (formula.Equals(""))
+                throw new FormulaFormatException("The Formula was empty!");
         }
 
         /// <summary>
@@ -162,13 +168,9 @@ namespace SpreadsheetUtilities
             foreach (String token in this.tokens)
             {
 
-                //Checks if token is empty string and ignores it if it is
-                if (token == "")
-                {
-                    continue;
-                }
+                
                 //Checks if token is a left paranthesis and pushes it onto the operators stack
-                else if (token == "(")
+                if (token == "(")
                 {
                     operators.Push(token);
                 }
@@ -244,7 +246,7 @@ namespace SpreadsheetUtilities
                     return values.Pop() + values.Pop();
                 }
 
-                throw new ArgumentException("Invalid Expression");
+                return new FormulaError("Invalid Expression");
             }
         }
 
@@ -261,7 +263,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<String> GetVariables()
         {
-            return null;
+            
+            return new List<String>(this.vars);
         }
 
         /// <summary>
@@ -276,7 +279,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override string ToString()
         {
-            return null;
+            return this.expression;
         }
 
         /// <summary>
