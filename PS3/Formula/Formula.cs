@@ -155,6 +155,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public object Evaluate(Func<string, double> lookup)
         {
+            Object errorToReturn=null;
             Stack<double> values = new Stack<double>();
             Stack<String> operators = new Stack<String>();
             //System.Console.WriteLine(exp);
@@ -177,7 +178,7 @@ namespace SpreadsheetUtilities
                 //Checks if the token is a variable matching the pattern (LettersDigits)
                 else if (vars.Contains(token))
                 {
-                    performMultDiv(lookup(token), operators, values);
+                    errorToReturn = performMultDiv(lookup(token), operators, values);
                 }
                 //Checks if token is a + or - and then performs the operations accordingly
                 else if (token == "+" || token == "-")
@@ -188,7 +189,7 @@ namespace SpreadsheetUtilities
                 //checks if token is an integer and returns its value if it is
                 else if (int.TryParse(token, out int tokenValue))
                 {
-                    performMultDiv(tokenValue, operators, values);
+                    errorToReturn = performMultDiv(tokenValue, operators, values);
                 }
                 else if (token == ")")
                 {
@@ -208,13 +209,14 @@ namespace SpreadsheetUtilities
                     {
                         return new FormulaError("Orphan Right Parentheses");
                     }
-                    performMultDiv(values.Pop(), operators, values);
+                    errorToReturn = performMultDiv(values.Pop(), operators, values);
                 }
                 else
                 {
                     return new FormulaError("Unrecognized operator or variable: "+ token);
                 }
-
+                if (errorToReturn != null)
+                    return errorToReturn;
             }
 
             //This is the End of Expression behavior
@@ -367,7 +369,7 @@ namespace SpreadsheetUtilities
         /// Then performs the necessary operations to evaluate it or push it onto the stack
         /// </summary>
         /// <param name="tokenValue">Value of the current token</param>
-        private static void performMultDiv(double tokenValue, Stack<String> operators, Stack<double> values)
+        private static Object performMultDiv(double tokenValue, Stack<String> operators, Stack<double> values)
         {
             if (operators.checkPeek("*"))
             {
@@ -379,7 +381,7 @@ namespace SpreadsheetUtilities
             {
                 if (tokenValue == 0)
                 {
-                    throw new ArgumentException("Divide by zero error!");
+                    return new FormulaError("Divide by zero error!");
                 }
                 else
                 {
@@ -393,6 +395,7 @@ namespace SpreadsheetUtilities
             {
                 values.Push(tokenValue);
             }
+            return null;
         }
 
         /// <summary>

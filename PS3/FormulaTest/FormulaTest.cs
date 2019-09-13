@@ -107,10 +107,11 @@ namespace FormulaTest
         }
 
         [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(ArgumentException))]
         public void TestUnknownVariable()
         {
             Formula f = new Formula("2+X1");
-            Assert.IsInstanceOfType(f.Evaluate( s => { throw new ArgumentException("Unknown variable"); }), typeof(FormulaError));
+            f.Evaluate( s => { throw new ArgumentException("Unknown variable"); });
         }
 
         [TestMethod(), Timeout(5000)]
