@@ -70,13 +70,50 @@ namespace FormulaTest
             Assert.IsFalse(contains.Contains("y1"));
         }
         /// <summary>
-        /// Tests toString Method
+        /// Tests toString Function
         /// </summary>
         [TestMethod()]
         public void testToString()
         {
             Formula f = new Formula("x2  +  4 *Y4", s => s.ToUpper(), s => true);
             Assert.AreEqual("X2+4*Y4", f.ToString());
+        }
+
+        /// <summary>
+        /// Tests Positive Scientific notation
+        /// </summary>
+        [TestMethod()]
+        public void testPosSciNotation()
+        {
+            Formula f = new Formula("11+1e2");
+            Assert.AreEqual(111d, f.Evaluate(x => 0)); ;
+        }
+
+        /// <summary>
+        /// Tests Negative Scientific notation
+        /// </summary>
+        [TestMethod()]
+        public void testNegSciNotation()
+        {
+            Formula f = new Formula("11+1e-2");
+            Assert.AreEqual(11.01d, f.Evaluate(x => 0)); ;
+        }
+
+        /// <summary>
+        /// Tests Hashcode and Equals
+        /// </summary>
+        [TestMethod()]
+        public void testEquals()
+        {
+            Formula f1 = new Formula("1 + 3");
+            Formula f2 = new Formula("1 +3");
+            Assert.IsTrue(f1.Equals(f2));
+
+            Formula v1 = new Formula("x2+7", upperNormalize, s => true);
+            Formula v2 = new Formula("X2 +  7");
+            Assert.IsTrue(v1 == v2);
+
+            Assert.IsTrue(v1 != f2);
         }
 
         [TestMethod(), Timeout(5000)]
@@ -214,17 +251,89 @@ namespace FormulaTest
         }
 
         [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
         public void TestExtraOperator()
         {
             Formula f = new Formula("2+5+");
-            Assert.IsInstanceOfType(f.Evaluate(s => 0), typeof(FormulaError));
         }
 
         [TestMethod(), Timeout(5000)]
-        public void TestExtraParentheses()
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestExtraRightParentheses()
         {
             Formula f = new Formula("2+5*7)");
-            Assert.IsInstanceOfType(f.Evaluate(s => 0), typeof(FormulaError));
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestStartingOperator()
+        {
+            Formula f = new Formula("+23 *1");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestEndingOperator()
+        {
+            Formula f = new Formula("1 +3 -");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestOperatorFollowingRule()
+        {
+            Formula f = new Formula("2+-4");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestOpenParenthesesFollowingRule()
+        {            
+            Formula f = new Formula("(*3+2)");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestCloseParenthesesFollowingNum()
+        {
+            Formula f = new Formula("(3+2)5");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestCloseParenthesesFollowingVar()
+        {
+            Formula f = new Formula("(3+2)X");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestExtraLeftParentheses()
+        {
+            Formula f = new Formula("(2+(5*7)");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestParenthesesAfterNum()
+        {
+            Formula f = new Formula("3(4*2)");
+            f.Evaluate(s => 0);
+        }
+
+        [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestParenthesesAfterVar()
+        {
+            Formula f = new Formula("X3(4*2)");
+            f.Evaluate(s => 0);
         }
 
         [TestMethod(), Timeout(5000)]
@@ -244,10 +353,10 @@ namespace FormulaTest
         }
 
         [TestMethod(), Timeout(5000)]
+        [ExpectedException(typeof(FormulaFormatException))]
         public void TestParensNoOperator()
         {
             Formula f = new Formula("5+7+(5)8");
-            Assert.IsInstanceOfType(f.Evaluate(s => 0), typeof(FormulaError));
         }
 
 

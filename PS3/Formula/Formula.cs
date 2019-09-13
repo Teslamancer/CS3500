@@ -95,26 +95,26 @@ namespace SpreadsheetUtilities
             this.vars = new HashSet<string>();
             string baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";
             string isDouble = @"(^[0-9]+$)|(^[0-9]+.*[0-9]+$)";
-            string isOperator = @"^[-+*/()]$";
-            bool validVar = true;
-            string invalidVarStart= "";
+            string isOperator = @"^[-+*/()]$";            
+            String prevToken="";
             StringBuilder sb = new StringBuilder();
+            int numParentheses = 0;
             //Iterates through tokens in expression and validates them
             foreach (String t in GetTokens(formula))
             {
                 if (Regex.IsMatch(t, isDouble))
                 {
+                    if (prevToken == ")")
+                        throw new FormulaFormatException("Numbers cannot immediately follow a closing parentheses!");
                     this.tokens.Add(double.Parse(t).ToString());
-                    validVar = false;
-                    invalidVarStart = t;
                     sb.Append(t);
                 }
                 else if (Regex.IsMatch(t, baseVariable))
                 {
-                    if (!validVar)
-                    {
-                        throw new FormulaFormatException("The provided token: " + invalidVarStart + t +"Does not meet basic variable criteria");
-                    }
+                    if (Regex.IsMatch(prevToken, isDouble))
+                        throw new FormulaFormatException("The provided variable "+prevToken+t+"Does not meet basic variable criteria!");
+                    if (prevToken == ")")
+                        throw new FormulaFormatException("Variables cannot immediately follow a closing parentheses!");
                     if (Regex.IsMatch(normalize(t), baseVariable) && isValid(normalize(t)))
                     {
                         this.tokens.Add(normalize(t));
@@ -126,16 +126,55 @@ namespace SpreadsheetUtilities
                 }
                 else if (Regex.IsMatch(t, isOperator))
                 {
+                    if(t == ")")
+                    {
+                        if(numParentheses == 0)
+                           throw new FormulaFormatException("Unexpected ')'");                         
+                        else
+                        {
+                            numParentheses--;                            
+                        }
+                        
+                    }
+                    else if (t == "(")
+                    {
+                        if(Regex.IsMatch(prevToken, isDouble)|| Regex.IsMatch(prevToken, baseVariable))
+                        {
+                            throw new FormulaFormatException("Cannot follow number or variable with a parentheses!");
+                        }
+                        numParentheses++;
+                    }
+                    else if(tokens.Count ==0)
+                        throw new FormulaFormatException("Cannot start with an operator!");
+                    else
+                    {
+                        if(Regex.IsMatch(prevToken, @"^[-+*/]$"))
+                        {
+                            throw new FormulaFormatException("Cannot have two operators in a row!");
+                        }
+                        else if(prevToken == "(")
+                        {
+                            throw new FormulaFormatException("Cannot have operator immediately following opening parentheses!");
+                        }
+                    }
+
+
                     this.tokens.Add(t);
-                    validVar = true;
+                    
                     sb.Append(t);
                 }
                 else
                     throw new FormulaFormatException("The provided variable " + t + " does not meet the basic criteria for a variable. Please change this variable to a valid one.");
+                prevToken = t;
             }
+            if (Regex.IsMatch(prevToken, @"^[-+*/]$"))
+                throw new FormulaFormatException("Cannot End with an Operator!");
             this.expression = sb.ToString();
             if (formula.Equals(""))
                 throw new FormulaFormatException("The Formula was empty!");
+            if(numParentheses !=0)
+                throw new FormulaFormatException("Uneven number of Parentheses!");
+
         }
 
         /// <summary>
@@ -189,7 +228,7 @@ namespace SpreadsheetUtilities
                     operators.Push(token);
                 }
                 //checks if token is an integer and returns its value if it is
-                else if (int.TryParse(token, out int tokenValue))
+                else if (Double.TryParse(token, out double tokenValue))
                 {
                     errorToReturn = performMultDiv(tokenValue, operators, values);
                 }
@@ -304,7 +343,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override bool Equals(object obj)
         {
-            return false;
+            return this.GetHashCode().Equals(obj.GetHashCode());
         }
 
         /// <summary>
@@ -314,7 +353,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator ==(Formula f1, Formula f2)
         {
-            return false;
+            return f1.Equals(f2);
         }
 
         /// <summary>
@@ -324,7 +363,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator !=(Formula f1, Formula f2)
         {
-            return false;
+            return !f1.Equals(f2);
         }
 
         /// <summary>
@@ -334,7 +373,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override int GetHashCode()
         {
-            return 0;
+            return this.ToString().GetHashCode();
         }
 
         /// <summary>
