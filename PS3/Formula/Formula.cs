@@ -93,29 +93,29 @@ namespace SpreadsheetUtilities
         {
             this.tokens = new List<string>();
             this.vars = new HashSet<string>();
-            string baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";
-            string isDouble = @"(^[0-9]+$)|(^[0-9]+.*[0-9]+$)";
-            string isOperator = @"^[-+*/()]$";            
-            String prevToken="";
+            string baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if token matches basic definition of a variable
+            string isDouble = @"(^[0-9]+$)|(^[0-9]+.*[0-9]+$)";//determines if a token is a number
+            string isOperator = @"^[-+*/()]$";//determines if a token in an operator or parentheses
+            String prevToken="";//stores previous token for validation
             StringBuilder sb = new StringBuilder();
-            int numParentheses = 0;
+            int numParentheses = 0;//to make sure a matching number of parentheses are used
             //Iterates through tokens in expression and validates them
             foreach (String t in GetTokens(formula))
             {
-                if (Regex.IsMatch(t, isDouble))
+                if (Regex.IsMatch(t, isDouble))//checks if token is a number
                 {
-                    if (prevToken == ")")
+                    if (prevToken == ")")//validation
                         throw new FormulaFormatException("Numbers cannot immediately follow a closing parentheses!");
-                    this.tokens.Add(double.Parse(t).ToString());
+                    this.tokens.Add(double.Parse(t).ToString());//converts to string for normalizing purposes
                     sb.Append(t);
                 }
-                else if (Regex.IsMatch(t, baseVariable))
+                else if (Regex.IsMatch(t, baseVariable))//checks if token is a variable
                 {
-                    if (Regex.IsMatch(prevToken, isDouble))
+                    if (Regex.IsMatch(prevToken, isDouble))//validation
                         throw new FormulaFormatException("The provided variable "+prevToken+t+"Does not meet basic variable criteria!");
                     if (prevToken == ")")
                         throw new FormulaFormatException("Variables cannot immediately follow a closing parentheses!");
-                    if (Regex.IsMatch(normalize(t), baseVariable) && isValid(normalize(t)))
+                    if (Regex.IsMatch(normalize(t), baseVariable) && isValid(normalize(t)))//validates that variable matches provided delegates
                     {
                         this.tokens.Add(normalize(t));
                         this.vars.Add(normalize(t));
@@ -124,7 +124,7 @@ namespace SpreadsheetUtilities
                     else
                         throw new FormulaFormatException("The provided variable " + t + " does not meet the criteria specified. Please change this variable to a valid one.");
                 }
-                else if (Regex.IsMatch(t, isOperator))
+                else if (Regex.IsMatch(t, isOperator))//checks if token is an operator or parentheses
                 {
                     if(t == ")")
                     {
@@ -167,6 +167,7 @@ namespace SpreadsheetUtilities
                     throw new FormulaFormatException("The provided variable " + t + " does not meet the basic criteria for a variable. Please change this variable to a valid one.");
                 prevToken = t;
             }
+            //End of expression validation
             if (Regex.IsMatch(prevToken, @"^[-+*/]$"))
                 throw new FormulaFormatException("Cannot End with an Operator!");
             this.expression = sb.ToString();
