@@ -53,7 +53,7 @@ namespace SpreadsheetUtilities
     {
         private readonly String expression;
         private List<String> tokens;
-        private List<String> vars;
+        private HashSet<String> vars;
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
         /// described in the class comment.  If the expression is syntactically invalid,
@@ -91,24 +91,43 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-            this.tokens = new List<String>();
-            String baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";
-
+            this.tokens = new List<string>();
+            this.vars = new HashSet<string>();
+            string baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";
+            string isDouble = @"(^[0-9]+$)|(^[0-9]+.*[0-9]+$)";
+            string isOperator = @"^[-+*/()]$";
+            bool validVar = true;
+            string invalidVarStart= "";
             //Iterates through tokens in expression and validates them
             foreach (String t in GetTokens(formula))
             {
-                if (Regex.IsMatch(t, baseVariable))
+                if (Regex.IsMatch(t, isDouble))
                 {
-                    if (Regex.IsMatch(normalize(t),baseVariable) && isValid(normalize(t)))
+                    this.tokens.Add(double.Parse(t).ToString());
+                    validVar = false;
+                    invalidVarStart = t;
+                }
+                else if (Regex.IsMatch(t, baseVariable))
+                {
+                    if (!validVar)
+                    {
+                        throw new FormulaFormatException("The provided token: " + invalidVarStart + t +"Does not meet basic variable criteria");
+                    }
+                    if (Regex.IsMatch(normalize(t), baseVariable) && isValid(normalize(t)))
                     {
                         this.tokens.Add(t);
                         this.vars.Add(normalize(t));
-                    }                        
+                    }
                     else
                         throw new FormulaFormatException("The provided variable " + t + " does not meet the criteria specified. Please change this variable to a valid one.");
                 }
+                else if (Regex.IsMatch(t, isOperator))
+                {
+                    this.tokens.Add(t);
+                    validVar = true;
+                }
                 else
-                    this.tokens.Add(double.Parse(t).ToString());                
+                    throw new FormulaFormatException("The provided variable " + t + " does not meet the basic criteria for a variable. Please change this variable to a valid one.");
             }
             this.expression = formula;
         }
@@ -136,7 +155,95 @@ namespace SpreadsheetUtilities
         /// </summary>
         public object Evaluate(Func<string, double> lookup)
         {
-            return null;
+            Stack<double> values = new Stack<double>();
+            Stack<String> operators = new Stack<String>();
+            //System.Console.WriteLine(exp);
+            foreach (String token in this.tokens)
+            {
+
+                //Checks if token is empty string and ignores it if it is
+                if (token == "")
+                {
+                    continue;
+                }
+                //Checks if token is a left paranthesis and pushes it onto the operators stack
+                else if (token == "(")
+                {
+                    operators.Push(token);
+                }
+                //Checks if the token is * or / and then pushes it onto the operators stack
+                else if (token == "*" || token == "/")
+                    operators.Push(token);
+                //Checks if the token is a variable matching the pattern (LettersDigits)
+                else if (vars.Contains(token))
+                {
+                    performMultDiv(lookup(token), operators, values);
+                }
+                //Checks if token is a + or - and then performs the operations accordingly
+                else if (token == "+" || token == "-")
+                {
+                    performAddSub(token, operators, values);
+                    operators.Push(token);
+                }
+                //checks if token is an integer and returns its value if it is
+                else if (int.TryParse(token, out int tokenValue))
+                {
+                    performMultDiv(tokenValue, operators, values);
+                }
+                else if (token == ")")
+                {
+                    if (operators.checkPeek("+"))
+                    {
+                        performAddSub("+", operators, values);
+                    }
+                    else if (operators.checkPeek("-"))
+                    {
+                        performAddSub("-", operators, values);
+                    }
+                    if (operators.checkPeek("("))
+                    {
+                        operators.Pop();
+                    }
+                    else
+                    {
+                        return new FormulaError("Orphan Right Parentheses");
+                    }
+                    performMultDiv(values.Pop(), operators, values);
+                }
+                else
+                {
+                    return new FormulaError("Unrecognized operator or variable: "+ token);
+                }
+
+            }
+
+            //This is the End of Expression behavior
+            //Checks if there are no operators left and if there is one value left
+            if (operators.Count == 0 && values.Count == 1)
+            {
+
+                return values.Pop();
+            }
+            //checks if there is more than one operator left or more than two values left
+            else if (operators.Count > 1 || values.Count > 2 || (operators.Count == 1 && values.Count < 2))
+                return new FormulaError("Too many values or operators left" );
+            //Performs final operation and returns result
+            else
+            {
+                if (operators.checkPeek("-"))
+                {
+                    operators.Pop();
+                    double subtractor = values.Pop();
+                    return values.Pop() - subtractor;
+                }
+                else if (operators.checkPeek("+"))
+                {
+                    operators.Pop();
+                    return values.Pop() + values.Pop();
+                }
+
+                throw new ArgumentException("Invalid Expression");
+            }
         }
 
         /// <summary>
@@ -255,6 +362,58 @@ namespace SpreadsheetUtilities
             }
 
         }
+               /// <summary>
+        /// This method takes a token that has a value, (can be passed value of variable from lookup or normal int,
+        /// Then performs the necessary operations to evaluate it or push it onto the stack
+        /// </summary>
+        /// <param name="tokenValue">Value of the current token</param>
+        private static void performMultDiv(double tokenValue, Stack<String> operators, Stack<double> values)
+        {
+            if (operators.checkPeek("*"))
+            {
+                operators.Pop();
+                double result = values.Pop() * tokenValue;
+                values.Push(result);
+            }
+            else if (operators.checkPeek("/"))
+            {
+                if (tokenValue == 0)
+                {
+                    throw new ArgumentException("Divide by zero error!");
+                }
+                else
+                {
+                    operators.Pop();
+                    double result = values.Pop() / tokenValue;
+                    values.Push(result);
+                }
+
+            }
+            else
+            {
+                values.Push(tokenValue);
+            }
+        }
+
+        /// <summary>
+        /// Performs validation for addition or subtraction, then performs the necessary operation
+        /// </summary>
+        /// <param name="token">current token (should be "+" or "-")</param>
+        private static void performAddSub(String token, Stack<String> operators, Stack<double> values)
+        {
+            if (values.Count >1 && operators.checkPeek("-"))
+            {
+                operators.Pop();
+                double subtractor = values.Pop();
+                values.Push(values.Pop() - subtractor);
+            }
+            else if (values.Count > 1 && operators.checkPeek("+"))
+            {
+                operators.Pop();
+                values.Push(values.Pop() + values.Pop());
+            }            
+        }
+
     }
 
     /// <summary>
@@ -290,5 +449,29 @@ namespace SpreadsheetUtilities
         ///  The reason why this FormulaError was created.
         /// </summary>
         public string Reason { get; private set; }
+    }
+}
+/// <summary>
+/// Contains extension methods for the generic stack class
+/// </summary>
+public static class StackUtils
+{
+    /// <summary>
+    /// Checks if the stack is empty, then checks if the top element is equal to the given string
+    /// </summary>
+    /// <typeparam name="T">Stack type</typeparam>
+    /// <param name="stack">stack to use</param>
+    /// <param name="token">String to check against</param>
+    /// <returns>True if top element of stack equals the string, false otherwise</returns>
+    public static bool checkPeek<T>(this Stack<T> stack, String token)
+    {
+        if (stack.Count > 0)
+        {
+            if (stack.Peek().Equals(token))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
