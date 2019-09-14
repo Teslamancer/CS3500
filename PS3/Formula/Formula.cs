@@ -164,7 +164,7 @@ namespace SpreadsheetUtilities
                     sb.Append(t);
                 }
                 else
-                    throw new FormulaFormatException("The provided variable " + t + " does not meet the basic criteria for a variable. Please change this variable to a valid one.");
+                    throw new FormulaFormatException("The provided token " + t + " was unrecognized");
                 prevToken = t;
             }
             //End of expression validation
@@ -246,17 +246,9 @@ namespace SpreadsheetUtilities
                     if (operators.checkPeek("("))
                     {
                         operators.Pop();
-                    }
-                    else
-                    {
-                        return new FormulaError("Orphan Right Parentheses");
-                    }
+                    }                    
                     errorToReturn = performMultDiv(values.Pop(), operators, values);
-                }
-                else
-                {
-                    return new FormulaError("Unrecognized operator or variable: "+ token);
-                }
+                }                
                 if (errorToReturn != null)
                     return errorToReturn;
             }
@@ -267,10 +259,7 @@ namespace SpreadsheetUtilities
             {
 
                 return values.Pop();
-            }
-            //checks if there is more than one operator left or more than two values left
-            else if (operators.Count > 1 || values.Count > 2 || (operators.Count == 1 && values.Count < 2))
-                return new FormulaError("Too many values or operators left" );
+            }            
             //Performs final operation and returns result
             else
             {
@@ -280,13 +269,12 @@ namespace SpreadsheetUtilities
                     double subtractor = values.Pop();
                     return values.Pop() - subtractor;
                 }
-                else if (operators.checkPeek("+"))
+                else
                 {
                     operators.Pop();
                     return values.Pop() + values.Pop();
                 }
-
-                return new FormulaError("Invalid Expression");
+                return null;
             }
         }
 
