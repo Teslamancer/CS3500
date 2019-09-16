@@ -27,6 +27,8 @@ namespace FormulaTest
         {
             return Regex.IsMatch(s, @"^[A-Z]+[0-9]+$");
         }
+
+
         /// <summary>
         /// Tests for invalid character
         /// </summary>
@@ -286,6 +288,15 @@ namespace FormulaTest
         {
             Formula f = new Formula("5/0");
             Assert.IsInstanceOfType(f.Evaluate(s => 0), typeof(FormulaError));            
+        }
+        /// <summary>
+        /// tests divide by 0.0 returning a formulaerror
+        /// </summary>
+        [TestMethod(), Timeout(5000)]
+        public void TestDivideByZeroDouble()
+        {
+            Formula f = new Formula("5/0.0");
+            Assert.IsInstanceOfType(f.Evaluate(s => 0), typeof(FormulaError));
         }
         /// <summary>
         /// tests that single operator throws exception
