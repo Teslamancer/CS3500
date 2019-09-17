@@ -8,6 +8,7 @@ namespace SS
     public class Spreadsheet : AbstractSpreadsheet
     {
         private HashSet<Cell> cells = new HashSet<Cell>();
+        private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if cell name matches basic requirements
         public Spreadsheet()
         {
 
@@ -60,7 +61,10 @@ namespace SS
             /// <param name="contents"></param>
             Cell(string name, Object contents)
             {
-                this.name = name;
+                if (System.Text.RegularExpressions.Regex.IsMatch(name, validName))
+                    this.name = name;
+                else
+                    throw new InvalidNameException();
                 if(contents.GetType() == typeof(Formula))
                 {
                     this.formulaContent = (Formula)contents;
