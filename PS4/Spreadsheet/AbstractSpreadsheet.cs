@@ -199,8 +199,9 @@ namespace SS
 
     /// <summary>
     /// A helper for the GetCellsToRecalculate method.
-    /// 
-    ///   -- You should fully comment what is going on below --
+    /// This method does a depth-first search on the dependency tree of a starting named cell. It adds the cell name to a visited list,
+    /// then visits each direct dependent, if that dependent hasn't been visited yet, it recursively runs the method on its dependents, then adds
+    /// the original cell name to the changed list.
     /// </summary>
     private void Visit(String start, String name, ISet<String> visited, LinkedList<String> changed)
     {
