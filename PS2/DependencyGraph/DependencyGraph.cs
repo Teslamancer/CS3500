@@ -148,9 +148,11 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
+            
             if (dependentDict.ContainsKey(s))
             {
-                dependentDict[s].Add(t);
+                if()//TODO Implement Size
+                dependentDict[s].Add(t);                
                 if (dependeeDict.ContainsKey(t))
                 {
                     dependeeDict[t].Add(s);
