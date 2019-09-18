@@ -14,6 +14,7 @@ namespace SS
         {
 
         }
+        //What should this return if there is no cell with name?
         public override object GetCellContents(string name)
         {
             if(name is null)
@@ -42,6 +43,8 @@ namespace SS
 
         public override IList<string> SetCellContents(string name, string text)
         {
+            if (text == "" && cells.ContainsKey(name))
+                cells.Remove(name);
             throw new NotImplementedException();
         }
 
@@ -67,7 +70,7 @@ namespace SS
             /// <summary>
             /// This constructor initializes an empty cell;
             /// </summary>
-            Cell(string name) : this(name, "") { }
+            //Cell(string name) : this(name, "") { }
             /// <summary>
             /// This constructor allows the Spreadsheet to initialize the cell with its contents
             /// </summary>

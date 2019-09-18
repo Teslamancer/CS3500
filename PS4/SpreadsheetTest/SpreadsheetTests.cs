@@ -125,7 +125,20 @@ namespace SpreadsheetTest
             sheet.SetCellContents("A1", new Formula("1 + 1", x => x, x => true));
             Assert.AreEqual(new Formula("1+1", x => x, x => true), sheet.GetCellContents("A1"));
         }
+        /// <summary>
+        /// Tests deleting a cell by setting it to ""
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void testDeleteCell()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", "Test");
+            sheet.SetCellContents("A1", "");
+            List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
+            Assert.AreEqual(0, cells.Count);
+            sheet.GetCellContents("A1");
+        }
 
-        
     }
 }
