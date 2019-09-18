@@ -8,6 +8,7 @@ namespace SS
     public class Spreadsheet : AbstractSpreadsheet
     {
         private HashSet<Cell> cells = new HashSet<Cell>();
+        private DependencyGraph graph = new DependencyGraph();
         private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if cell name matches basic requirements
         public Spreadsheet()
         {
@@ -50,11 +51,8 @@ namespace SS
         private class Cell
         {
             private string name;
-            private Formula formulaContent;
-            private double doubleContent;
-            private string stringContent;
-            private Object value;
-            public DependencyGraph graph { private set; get; }
+            private object contents;
+            private object value;            
             /// <summary>
             /// This constructor allows the Spreadsheet to initialize the cell with its contents
             /// </summary>
@@ -65,32 +63,14 @@ namespace SS
                     this.name = name;
                 else
                     throw new InvalidNameException();
-                if(contents.GetType() == typeof(Formula))
-                {
-                    this.formulaContent = (Formula)contents;
-                    this.graph = new DependencyGraph();
-                    foreach(string cellName in this.formulaContent.GetVariables())
-                    {
-                        this.graph.AddDependency(cellName, this.name);
-                    }
-                }
-                else if(contents.GetType() == typeof(string))
-                {
-                    this.stringContent = (string)contents;
-                    this.value = this.stringContent;
-                }
-                else if(contents.GetType() == typeof(double))
-                {
-                    this.doubleContent = (double)contents;
-                    this.value = this.doubleContent;
-                }
+                this.contents = contents;
             }
             /// <summary>
             /// This constructor initializes an empty cell;
             /// </summary>
             Cell(string name)
             {
-                this.stringContent = "";
+                this.contents = "";
                 this.value = "";
                 this.name = name;
             }
