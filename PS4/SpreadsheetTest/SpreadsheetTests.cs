@@ -3,6 +3,7 @@ using SpreadsheetUtilities;
 using SS;
 using System;
 using System.Collections.Generic;
+//Developed by Hunter Schmidt
 
 namespace SpreadsheetTest
 {
@@ -139,6 +140,14 @@ namespace SpreadsheetTest
             Assert.AreEqual(0, cells.Count);
             sheet.GetCellContents("A1");
         }
-
+        /// <summary>
+        /// Tests getting of Cell contents when Cell not set
+        /// </summary>
+        [TestMethod]
+        public void testGetNonSetCell()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            Assert.AreEqual("",sheet.GetCellContents("A1"));
+        }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using SpreadsheetUtilities;
-
+//Developed by Hunter Schmidt
 namespace SS
 {
     public class Spreadsheet : AbstractSpreadsheet
@@ -27,7 +27,7 @@ namespace SS
             }
             else
             {
-                return null;
+                return "";
             }
         }
 
@@ -77,9 +77,9 @@ namespace SS
             /// <param name="contents"></param>
             Cell(string name, Object contents)
             {
-                if (name is null || contents is null)
-                    throw new ArgumentNullException();
-                if (System.Text.RegularExpressions.Regex.IsMatch(name, validName))
+                if (contents is null)
+                    throw new ArgumentNullException();                
+                else if (System.Text.RegularExpressions.Regex.IsMatch(name, validName))
                     this.name = name;
                 else
                     throw new InvalidNameException();

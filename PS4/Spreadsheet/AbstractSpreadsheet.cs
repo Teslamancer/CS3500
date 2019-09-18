@@ -1,4 +1,5 @@
 ﻿// Written by Joe Zachary for CS 3500, September 2013
+//Expanded and additional documentation by Hunter Schmidt
 
 using System;
 using System.IO;
