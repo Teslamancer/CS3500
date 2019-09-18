@@ -7,7 +7,7 @@ namespace SS
 {
     public class Spreadsheet : AbstractSpreadsheet
     {
-        private HashSet<Cell> cells = new HashSet<Cell>();
+        private Dictionary<string, Cell> cells = new Dictionary<string, Cell>();
         private DependencyGraph graph = new DependencyGraph();
         private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if cell name matches basic requirements
         public Spreadsheet()
@@ -16,7 +16,18 @@ namespace SS
         }
         public override object GetCellContents(string name)
         {
-            throw new NotImplementedException();
+            if(name is null)
+            {
+                throw new InvalidNameException();
+            }
+            else if(cells.ContainsKey(name))
+            {                
+                return cells[name].contents;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
@@ -50,9 +61,9 @@ namespace SS
         /// </summary>
         private class Cell
         {
-            private string name;
-            private object contents;
-            private object value;            
+            protected string name;
+            public object contents;
+            public object value;     
             /// <summary>
             /// This constructor allows the Spreadsheet to initialize the cell with its contents
             /// </summary>
