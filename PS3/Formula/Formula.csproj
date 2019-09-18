@@ -8,4 +8,8 @@
     <DocumentationFile>C:\Users\hunter.schmidt\Source\Repos\u0916776\PS3\Formula\Formula.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\hunter.schmidt\Source\Repos\u0916776\PS3\Formula\Formula.xml</DocumentationFile>
+  </PropertyGroup>
+
 </Project>
