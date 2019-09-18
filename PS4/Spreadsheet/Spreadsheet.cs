@@ -63,28 +63,28 @@ namespace SS
         {
             protected string name;
             public object contents;
-            public object value;     
+            public object value;
+            /// <summary>
+            /// This constructor initializes an empty cell;
+            /// </summary>
+            Cell(string name) : this(name, "") { }
             /// <summary>
             /// This constructor allows the Spreadsheet to initialize the cell with its contents
             /// </summary>
             /// <param name="contents"></param>
             Cell(string name, Object contents)
             {
+                if (name is null || contents is null)
+                    throw new ArgumentNullException();
                 if (System.Text.RegularExpressions.Regex.IsMatch(name, validName))
                     this.name = name;
                 else
                     throw new InvalidNameException();
                 this.contents = contents;
             }
-            /// <summary>
-            /// This constructor initializes an empty cell;
-            /// </summary>
-            Cell(string name)
-            {
-                this.contents = "";
-                this.value = "";
-                this.name = name;
-            }
+            
+
+
         }
     }
         
