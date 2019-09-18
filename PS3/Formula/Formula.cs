@@ -94,7 +94,7 @@ namespace SpreadsheetUtilities
             this.tokens = new List<string>();
             this.vars = new HashSet<string>();
             string baseVariable = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if token matches basic definition of a variable
-            string isDouble = @"(^[0-9]+$)|(^[0-9]+.*[0-9]+$)";//determines if a token is a number
+            string isDouble = @"(^[0-9]+$)|(^[0-9]*\.*[0-9]+$)|(^[0-9]*\.*[0-9]+[eE]+[-+]*[0-9]+$)";//determines if a token is a number
             string isOperator = @"^[-+*/()]$";//determines if a token in an operator or parentheses
             String prevToken="";//stores previous token for validation
             StringBuilder sb = new StringBuilder();
@@ -104,10 +104,10 @@ namespace SpreadsheetUtilities
             {
                 if (Regex.IsMatch(t, isDouble))//checks if token is a number
                 {
-                    if (prevToken == ")")//validation
+                    if (prevToken == ")" || Regex.IsMatch(prevToken, isDouble))//validation
                         throw new FormulaFormatException("Numbers cannot immediately follow a closing parentheses!");
                     this.tokens.Add(double.Parse(t).ToString());//converts to string for normalizing purposes
-                    sb.Append(t);
+                    sb.Append(Double.Parse(t).ToString());
                 }
                 else if (Regex.IsMatch(t, baseVariable))//checks if token is a variable
                 {
@@ -205,76 +205,84 @@ namespace SpreadsheetUtilities
             Stack<double> values = new Stack<double>();
             Stack<String> operators = new Stack<String>();
             //System.Console.WriteLine(exp);
-            foreach (String token in this.tokens)
+            try
             {
-
+                foreach (String token in this.tokens)
+            {
                 
-                //Checks if token is a left paranthesis and pushes it onto the operators stack
-                if (token == "(")
-                {
-                    operators.Push(token);
-                }
-                //Checks if the token is * or / and then pushes it onto the operators stack
-                else if (token == "*" || token == "/")
-                    operators.Push(token);
-                //Checks if the token is a variable matching the pattern (LettersDigits)
-                else if (vars.Contains(token))
-                {
-                    errorToReturn = performMultDiv(lookup(token), operators, values);
-                }
-                //Checks if token is a + or - and then performs the operations accordingly
-                else if (token == "+" || token == "-")
-                {
-                    performAddSub(token, operators, values);
-                    operators.Push(token);
-                }
-                //checks if token is an integer and returns its value if it is
-                else if (Double.TryParse(token, out double tokenValue))
-                {
-                    errorToReturn = performMultDiv(tokenValue, operators, values);
-                }
-                else if (token == ")")
-                {
-                    if (operators.checkPeek("+"))
+
+                    //Checks if token is a left paranthesis and pushes it onto the operators stack
+                    if (token == "(")
                     {
-                        performAddSub("+", operators, values);
+                        operators.Push(token);
                     }
-                    else if (operators.checkPeek("-"))
+                    //Checks if the token is * or / and then pushes it onto the operators stack
+                    else if (token == "*" || token == "/")
+                        operators.Push(token);
+                    //Checks if the token is a variable matching the pattern (LettersDigits)
+                    else if (vars.Contains(token))
                     {
-                        performAddSub("-", operators, values);
+                        errorToReturn = performMultDiv(lookup(token), operators, values);
                     }
-                    if (operators.checkPeek("("))
+                    //Checks if token is a + or - and then performs the operations accordingly
+                    else if (token == "+" || token == "-")
                     {
-                        operators.Pop();
-                    }                    
-                    errorToReturn = performMultDiv(values.Pop(), operators, values);
-                }                
-                if (errorToReturn != null)
-                    return errorToReturn;
-            }
+                        performAddSub(token, operators, values);
+                        operators.Push(token);
+                    }
+                    //checks if token is an integer and returns its value if it is
+                    else if (Double.TryParse(token, out double tokenValue))
+                    {
+                        errorToReturn = performMultDiv(tokenValue, operators, values);
+                    }
+                    else if (token == ")")
+                    {
+                        if (operators.checkPeek("+"))
+                        {
+                            performAddSub("+", operators, values);
+                        }
+                        else if (operators.checkPeek("-"))
+                        {
+                            performAddSub("-", operators, values);
+                        }
+                        if (operators.checkPeek("("))
+                        {
+                            operators.Pop();
+                        }
+                        errorToReturn = performMultDiv(values.Pop(), operators, values);
+                    }
+                    if (errorToReturn != null)
+                        return errorToReturn;
+                }
+
 
             //This is the End of Expression behavior
             //Checks if there are no operators left and if there is one value left
-            if (operators.Count == 0 && values.Count == 1)
-            {
-
-                return values.Pop();
-            }            
-            //Performs final operation and returns result
-            else
-            {
-                if (operators.checkPeek("-"))
+                if (operators.Count == 0 && values.Count == 1)
                 {
-                    operators.Pop();
-                    double subtractor = values.Pop();
-                    return values.Pop() - subtractor;
+
+                    return values.Pop();
                 }
+                //Performs final operation and returns result
                 else
                 {
-                    operators.Pop();
-                    return values.Pop() + values.Pop();
+                    if (operators.checkPeek("-"))
+                    {
+                        operators.Pop();
+                        double subtractor = values.Pop();
+                        return values.Pop() - subtractor;
+                    }
+                    else
+                    {
+                        operators.Pop();
+                        return values.Pop() + values.Pop();
+                    }
+                    
                 }
-                return null;
+            }
+            catch (ArgumentException)
+            {
+                return new FormulaError("Unrecognized Variable");
             }
         }
 
@@ -332,6 +340,12 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override bool Equals(object obj)
         {
+            if (obj is null && this is null)
+            {
+                return true;
+            }
+            else if (obj is null || this is null)
+                return false;
             return this.GetHashCode().Equals(obj.GetHashCode());
         }
 
@@ -342,6 +356,12 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator ==(Formula f1, Formula f2)
         {
+            if (f2 is null && f1 is null)
+            {
+                return true;
+            }
+            else if (f2 is null || f1 is null)
+                return false;
             return f1.Equals(f2);
         }
 
@@ -352,6 +372,12 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator !=(Formula f1, Formula f2)
         {
+            if (f2 is null && f1 is null)
+            {
+                return false;
+            }
+            else if (f2 is null || f1 is null)
+                return true;
             return !f1.Equals(f2);
         }
 

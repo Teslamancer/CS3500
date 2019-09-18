@@ -189,16 +189,7 @@ namespace FormulaTest
             Formula f = new Formula("2+X1");
             Assert.AreEqual(6d, f.Evaluate(s => 4));
         }
-        /// <summary>
-        /// tests that unkown variable throws argumentexception
-        /// </summary>
-        [TestMethod(), Timeout(5000)]
-        [ExpectedException(typeof(ArgumentException))]
-        public void TestUnknownVariable()
-        {
-            Formula f = new Formula("2+X1");
-            f.Evaluate( s => { throw new ArgumentException("Unknown variable"); });
-        }
+        
         /// <summary>
         /// tests left to right evaluation
         /// </summary>
@@ -499,5 +490,6 @@ namespace FormulaTest
         {
             Formula f = new Formula("a3+3", s =>s, s => s.Equals("A3"));
         }
+
     }
 }
