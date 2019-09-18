@@ -28,5 +28,27 @@ namespace SpreadsheetTest
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetCellContents("123A","Test");
         }
+
+        /// <summary>
+        /// Tests setting of cell with double and invalid name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testInvalidSetWithDouble()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("123A", 1.123);
+        }
+
+        /// <summary>
+        /// Tests setting of cell with Formula and invalid name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testInvalidSetWithFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("123A", new SpreadsheetUtilities.Formula("17 + 3"));
+        }
     }
 }

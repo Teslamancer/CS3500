@@ -151,7 +151,8 @@ namespace SpreadsheetUtilities
             
             if (dependentDict.ContainsKey(s))
             {
-                if()//TODO Implement Size
+                if (dependentDict.ContainsKey(s) && dependentDict[s].Contains(t))
+                    Size--;
                 dependentDict[s].Add(t);                
                 if (dependeeDict.ContainsKey(t))
                 {
