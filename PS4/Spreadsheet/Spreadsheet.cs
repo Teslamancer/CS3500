@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using SpreadsheetUtilities;
 //Developed by Hunter Schmidt
 namespace SS
 {
     public class Spreadsheet : AbstractSpreadsheet
     {
-        private Dictionary<string, Cell> cells = new Dictionary<string, Cell>();
-        private DependencyGraph graph = new DependencyGraph();
+        private Dictionary<string, Cell> cells;
+        private DependencyGraph graph;
         private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if cell name matches basic requirements
         public Spreadsheet()
         {
-
-        }
-        //What should this return if there is no cell with name?
+            this.cells = new Dictionary<string, Cell>();
+            this.graph = new DependencyGraph();
+        }        
         public override object GetCellContents(string name)
         {
-            if(name is null)
+            if(name is null || !Regex.IsMatch(name, validName))
             {
                 throw new InvalidNameException();
             }
@@ -65,7 +66,7 @@ namespace SS
         private class Cell
         {
             protected string name;
-            public object contents;
+            public object contents;            
             public object value;
             /// <summary>
             /// This constructor initializes an empty cell;
