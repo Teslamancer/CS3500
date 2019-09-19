@@ -55,7 +55,14 @@ namespace SS
 
         public override IList<string> SetCellContents(string name, Formula formula)
         {
-            throw new NotImplementedException();
+            cells[name] = new Cell(name, formula);//Adds cell to dictionary
+            foreach(string var in formula.GetVariables())//adds dependencies to graph
+            {
+                graph.AddDependency(var, name);
+            }
+            List<string> toReturn = new List<string>(graph.GetDependents(name));//creates list to return of dependents of this Cell
+            toReturn.Add(name);
+            return toReturn;
         }
 
         protected override IEnumerable<string> GetDirectDependents(string name)

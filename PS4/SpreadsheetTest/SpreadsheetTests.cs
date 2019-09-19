@@ -149,5 +149,19 @@ namespace SpreadsheetTest
             AbstractSpreadsheet sheet = new Spreadsheet();
             Assert.AreEqual("",sheet.GetCellContents("A1"));
         }
+        /// <summary>
+        /// Tests setting cell with formula
+        /// </summary>
+        [TestMethod]
+        public void testSetFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A3", new Formula("3 + 5", x => x, x => true));
+            List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
+            Assert.AreEqual(1, cells.Count);
+            Assert.AreEqual(new Formula("3+5",x=>x,x=>true), sheet.GetCellContents("A3"));
+            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));            
+        }
+        //TODO Write test that invalid formula throws exception
     }
 }
