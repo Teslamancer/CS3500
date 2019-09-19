@@ -6,6 +6,9 @@ using SpreadsheetUtilities;
 //Developed by Hunter Schmidt
 namespace SS
 {
+    /// <summary>
+    /// This class represents a Spreadsheet composed of Cells. It extends the AbstractSpreadsheet class.
+    /// </summary>
     public class Spreadsheet : AbstractSpreadsheet
     {
         private Dictionary<string, Cell> cells;
@@ -18,11 +21,11 @@ namespace SS
         }        
         public override object GetCellContents(string name)
         {
-            if(name is null || !Regex.IsMatch(name, validName))
+            if(name is null || !Regex.IsMatch(name, validName))//checks if name is null or invalid
             {
                 throw new InvalidNameException();
             }
-            else if(cells.ContainsKey(name))
+            else if(cells.ContainsKey(name))//checks if we have specific data for that name
             {                
                 return cells[name].contents;
             }
@@ -34,11 +37,12 @@ namespace SS
 
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
-            throw new NotImplementedException();
+            return new List<string>(cells.Keys);
         }
 
         public override IList<string> SetCellContents(string name, double number)
         {
+            cells[name] = new Cell(name, number);
             throw new NotImplementedException();
         }
 
@@ -65,7 +69,7 @@ namespace SS
         /// </summary>
         private class Cell
         {
-            protected string name;
+            public string name;
             public object contents;            
             public object value;
             /// <summary>
@@ -76,7 +80,7 @@ namespace SS
             /// This constructor allows the Spreadsheet to initialize the cell with its contents
             /// </summary>
             /// <param name="contents"></param>
-            Cell(string name, Object contents)
+            public Cell(string name, Object contents)
             {
                 if (contents is null)
                     throw new ArgumentNullException();                
