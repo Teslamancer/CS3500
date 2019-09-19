@@ -43,14 +43,19 @@ namespace SS
         public override IList<string> SetCellContents(string name, double number)
         {
             cells[name] = new Cell(name, number);
+            return null;
             throw new NotImplementedException();
         }
 
         public override IList<string> SetCellContents(string name, string text)
         {
-            if (text == "" && cells.ContainsKey(name))
+            if (text == "" && cells.ContainsKey(name))//Checks if setting cell to empty
+            {
                 cells.Remove(name);
+                
+            }
             throw new NotImplementedException();
+
         }
 
         public override IList<string> SetCellContents(string name, Formula formula)
@@ -60,14 +65,15 @@ namespace SS
             {
                 graph.AddDependency(var, name);
             }
-            List<string> toReturn = new List<string>(graph.GetDependents(name));//creates list to return of dependents of this Cell
-            toReturn.Add(name);
-            return toReturn;
+            return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
         }
 
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            throw new NotImplementedException();
+            if (name is null)
+                throw new ArgumentNullException();
+            else
+                return new List<string>(graph.GetDependents(name));
         }
         /// <summary>
         /// This class represents one cell of a Spreadsheet, containing it's contents (what is entered into the cell) and it's value 
@@ -96,6 +102,19 @@ namespace SS
                 else
                     throw new InvalidNameException();
                 this.contents = contents;
+            }
+
+            public IList<string> getDependents(string name)
+            {
+                HashSet<string> dependents = new HashSet<string>();
+                dependents.Add(name);
+                RGetDependents(name, name, dependents);
+                return new List<string>(dependents);
+            }
+
+            private HashSet<string>RGetDependents(string start, string name, HashSet<string> visited)
+            {
+                throw new NotImplementedException();
             }
             
 

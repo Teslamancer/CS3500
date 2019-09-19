@@ -160,7 +160,17 @@ namespace SpreadsheetTest
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual(new Formula("3+5",x=>x,x=>true), sheet.GetCellContents("A3"));
-            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));            
+            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));
+            sheet.SetCellContents("B1", new Formula("A1+1", x => x, x => true));
+            sheet.SetCellContents("B2", new Formula("A1+2", x => x, x => true));
+            sheet.SetCellContents("B3", new Formula("A1+3", x => x, x => true));
+            List<string> debug = new List<string>(sheet.SetCellContents("A1", new Formula("3/ 0", x => x, x => true)));
+            foreach(string s in debug)
+            {
+                Console.WriteLine(s);
+            }
+            Assert.AreEqual(4, sheet.SetCellContents("A1", new Formula("3/ 0", x => x, x => true)).Count);
+
         }
         //TODO Write test that invalid formula throws exception
     }
