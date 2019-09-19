@@ -43,18 +43,21 @@ namespace SS
         public override IList<string> SetCellContents(string name, double number)
         {
             cells[name] = new Cell(name, number);
-            return null;
-            throw new NotImplementedException();
+            return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
         }
 
         public override IList<string> SetCellContents(string name, string text)
         {
-            if (text == "" && cells.ContainsKey(name))//Checks if setting cell to empty
+            if (text == "")//Checks if setting cell to empty
             {
-                cells.Remove(name);
-                
+                if (cells.ContainsKey(name))
+                    cells.Remove(name);
             }
-            throw new NotImplementedException();
+            else
+            {
+                cells[name] = new Cell(name, text);
+            }            
+            return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
 
         }
 

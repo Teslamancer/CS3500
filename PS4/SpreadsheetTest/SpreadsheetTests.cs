@@ -130,7 +130,6 @@ namespace SpreadsheetTest
         /// Tests deleting a cell by setting it to ""
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void testDeleteCell()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
@@ -138,7 +137,7 @@ namespace SpreadsheetTest
             sheet.SetCellContents("A1", "");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(0, cells.Count);
-            sheet.GetCellContents("A1");
+            Assert.AreEqual("",sheet.GetCellContents("A1"));
         }
         /// <summary>
         /// Tests getting of Cell contents when Cell not set
@@ -170,7 +169,51 @@ namespace SpreadsheetTest
                 Console.WriteLine(s);
             }
             Assert.AreEqual(4, sheet.SetCellContents("A1", new Formula("3/ 0", x => x, x => true)).Count);
+        }
+        /// <summary>
+        /// Tests setting cell with double
+        /// </summary>
+        [TestMethod]
+        public void testSetDouble()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", 0.0);
+            List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
+            Assert.AreEqual(1, cells.Count);
+            Assert.AreEqual(0.0, sheet.GetCellContents("A1"));
+            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));
+            sheet.SetCellContents("B1", new Formula("A1+1", x => x, x => true));
+            sheet.SetCellContents("B2", new Formula("A1+2", x => x, x => true));
+            sheet.SetCellContents("B3", new Formula("A1+3", x => x, x => true));
+            List<string> debug = new List<string>(sheet.SetCellContents("A1", 1.0));
+            foreach (string s in debug)
+            {
+                Console.WriteLine(s);
+            }
+            Assert.AreEqual(4, debug.Count);
+        }
 
+        /// <summary>
+        /// Tests setting cell with text
+        /// </summary>
+        [TestMethod]
+        public void testSetText()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", "Test");
+            List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
+            Assert.AreEqual(1, cells.Count);
+            Assert.AreEqual("Test", sheet.GetCellContents("A1"));
+            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));
+            sheet.SetCellContents("B1", new Formula("A1+1", x => x, x => true));
+            sheet.SetCellContents("B2", new Formula("A1+2", x => x, x => true));
+            sheet.SetCellContents("B3", new Formula("A1+3", x => x, x => true));
+            List<string> debug = new List<string>(sheet.SetCellContents("A1", "Test2"));
+            foreach (string s in debug)
+            {
+                Console.WriteLine(s);
+            }
+            Assert.AreEqual(4, debug.Count);
         }
         //TODO Write test that invalid formula throws exception
     }
