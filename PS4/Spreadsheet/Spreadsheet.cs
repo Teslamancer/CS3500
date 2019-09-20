@@ -14,11 +14,20 @@ namespace SS
         private Dictionary<string, Cell> cells;
         private DependencyGraph graph;
         private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if cell name matches basic requirements
+        /// <summary>
+        /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph
+        /// </summary>
         public Spreadsheet()
         {
             this.cells = new Dictionary<string, Cell>();
             this.graph = new DependencyGraph();
         }        
+        /// <summary>
+        /// Returns contents of cell with name. If value is null or invalid, throws InvalidNameException. If Cell hasn't had a value set (is empty),
+        /// returns an empty string.
+        /// </summary>
+        /// <param name="name">Name of Cell to get contents of</param>
+        /// <returns>Contents of cell with name "name"</returns>
         public override object GetCellContents(string name)
         {
             if(name is null || !Regex.IsMatch(name, validName))//checks if name is null or invalid
@@ -34,18 +43,33 @@ namespace SS
                 return "";
             }
         }
-
+        /// <summary>
+        /// Enumerates the names of all the non-empty cells in the spreadsheet.
+        /// </summary>
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
             return new List<string>(cells.Keys);
         }
-
+        /// <summary>
+        /// Method to set cell contents to number. Throws InvalidNameException if name is null or invalid. Returns list containing name and all cells whose value
+        /// depends on name.
+        /// </summary>
+        /// <param name="name">Name of cell to set value</param>
+        /// <param name="number">double to set cell contents to</param>
+        /// <returns>List containing this cell and all of its dependent cells</returns>
         public override IList<string> SetCellContents(string name, double number)
         {
             cells[name] = new Cell(name, number);
             return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
         }
-
+        /// <summary>
+        /// Method to set cell contents to text. Throws InvalidNameException if name is null or invalid. 
+        /// Throws ArugumentNullException if text is null. Returns list containing name and all cells whose value
+        /// depends on name.
+        /// </summary>
+        /// <param name="name">Name of cell to set value</param>
+        /// <param name="text">string to set contents of cell to</param>
+        /// <returns>List containing this cell and all of its dependent cells</returns>
         public override IList<string> SetCellContents(string name, string text)
         {
             if (text == "")//Checks if setting cell to empty
@@ -60,17 +84,53 @@ namespace SS
             return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
 
         }
-
+        /// <summary>
+        /// Method to set cell contents to formula. Throws InvalidNameException if name is null or invalid. 
+        /// Throws ArgumentNullException if formula is null. Throws CircularException if new Formula would cause a circular dependency, and reverts changes.
+        /// Returns list containing name and all cells whose value
+        /// depends on name.
+        /// </summary>
+        /// <param name="name">Name of cell to set value</param>
+        /// <param name="formula">Formula to set contents of cell to</param>
+        /// <returns>List containing this cell and all of its dependent cells</returns>
         public override IList<string> SetCellContents(string name, Formula formula)
         {
-            cells[name] = new Cell(name, formula);//Adds cell to dictionary
-            foreach(string var in formula.GetVariables())//adds dependencies to graph
+            Cell prevCell = new Cell(name, "toReplace");//stores previous cell if it already exists
+            if (cells.ContainsKey(name))           
+                prevCell = cells[name];                   
+            cells[name] = new Cell(name, formula);//Adds/replaces cell in dictionary
+            foreach(string var in formula.GetVariables())//adds dependencies to graph for new formula
             {
                 graph.AddDependency(var, name);
             }
-            return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
+            try//tries to return all dependencies + cell of named cell
+            {
+                return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
+            }
+            catch (CircularException)//if new Formula causes a circular dependency, then catches it
+            {
+                foreach(string var in formula.GetVariables())//removes dependencies added by circular formula
+                {
+                    graph.RemoveDependency(var, name);
+                }          
+                if(prevCell.contents is Formula)//if previous cell contained formula, restores dependencies
+                {
+                    Formula prevFormula = (Formula)prevCell.contents;
+                    foreach (string var in prevFormula.GetVariables())
+                    {
+                        graph.AddDependency(var, name);
+                    }
+                }                
+                cells[name] = prevCell;//restores cell value
+                throw new CircularException();//throws exception
+            }
+            
         }
-
+        /// <summary>
+        /// Gets the immediate dependents of the cell with name
+        /// </summary>
+        /// <param name="name">Cell to get dependents of</param>
+        /// <returns>IEnumerable string representation of dependent cells</returns>
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
             if (name is null)
@@ -98,7 +158,7 @@ namespace SS
             /// <param name="contents"></param>
             public Cell(string name, Object contents)
             {
-                if (contents is null)
+                if (contents is null)//ensures cell isn't set to null contents
                     throw new ArgumentNullException();                
                 else if (System.Text.RegularExpressions.Regex.IsMatch(name, validName))
                     this.name = name;
@@ -106,22 +166,6 @@ namespace SS
                     throw new InvalidNameException();
                 this.contents = contents;
             }
-
-            public IList<string> getDependents(string name)
-            {
-                HashSet<string> dependents = new HashSet<string>();
-                dependents.Add(name);
-                RGetDependents(name, name, dependents);
-                return new List<string>(dependents);
-            }
-
-            private HashSet<string>RGetDependents(string start, string name, HashSet<string> visited)
-            {
-                throw new NotImplementedException();
-            }
-            
-
-
         }
     }
         

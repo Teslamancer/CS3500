@@ -123,8 +123,8 @@ namespace SpreadsheetTest
             sheet.SetCellContents("A1", "Test");
             Assert.AreEqual("Test", sheet.GetCellContents("A1"));
 
-            sheet.SetCellContents("A1", new Formula("1 + 1", x => x, x => true));
-            Assert.AreEqual(new Formula("1+1", x => x, x => true), sheet.GetCellContents("A1"));
+            sheet.SetCellContents("A1", new Formula("1 + 1"));
+            Assert.AreEqual(new Formula("1+1"), sheet.GetCellContents("A1"));
         }
         /// <summary>
         /// Tests deleting a cell by setting it to ""
@@ -214,6 +214,21 @@ namespace SpreadsheetTest
                 Console.WriteLine(s);
             }
             Assert.AreEqual(4, debug.Count);
+        }
+        /// <summary>
+        /// Tests setting of cell with Formula that creates circular dependency
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void testCircularFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", new Formula("17 + B1"));
+            sheet.SetCellContents("B1", "");
+            sheet.SetCellContents("B1", new Formula("3 + A1"));
+            Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
+            Assert.AreEqual("",sheet.GetCellContents("B1"));
+            Assert.AreEqual(new Formula("17+B1"), sheet.GetCellContents("B1"));
         }
         //TODO Write test that invalid formula throws exception
     }
