@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace SpreadsheetTest
 {
     [TestClass]
-    public class UnitTest1
+    public class SpreadsheetTests
     {
         /// <summary>
         /// Tests getting of cell with invalid name
@@ -49,7 +49,7 @@ namespace SpreadsheetTest
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetCellContents("A1", "Text");
             sheet.SetCellContents("A2", 1.5);
-            sheet.SetCellContents("A3", new Formula("3 + 5", x => x, x => true));
+            sheet.SetCellContents("A3", new Formula("3 + 5"));
             sheet.SetCellContents("A4", "");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(3, cells.Count);
@@ -155,20 +155,20 @@ namespace SpreadsheetTest
         public void testSetFormula()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A3", new Formula("3 + 5", x => x, x => true));
+            sheet.SetCellContents("A3", new Formula("3 + 5"));
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
-            Assert.AreEqual(new Formula("3+5",x=>x,x=>true), sheet.GetCellContents("A3"));
-            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));
-            sheet.SetCellContents("B1", new Formula("A1+1", x => x, x => true));
-            sheet.SetCellContents("B2", new Formula("A1+2", x => x, x => true));
-            sheet.SetCellContents("B3", new Formula("A1+3", x => x, x => true));
-            List<string> debug = new List<string>(sheet.SetCellContents("A1", new Formula("3/ 0", x => x, x => true)));
+            Assert.AreEqual(new Formula("3+5"), sheet.GetCellContents("A3"));
+            sheet.SetCellContents("A7", new Formula("3/ 0"));
+            sheet.SetCellContents("B1", new Formula("A1+1"));
+            sheet.SetCellContents("B2", new Formula("A1+2"));
+            sheet.SetCellContents("B3", new Formula("A1+3"));
+            List<string> debug = new List<string>(sheet.SetCellContents("A1", new Formula("3/ 0")));
             foreach(string s in debug)
             {
                 Console.WriteLine(s);
             }
-            Assert.AreEqual(4, sheet.SetCellContents("A1", new Formula("3/ 0", x => x, x => true)).Count);
+            Assert.AreEqual(4, sheet.SetCellContents("A1", new Formula("3/ 0")).Count);
         }
         /// <summary>
         /// Tests setting cell with double
@@ -181,10 +181,10 @@ namespace SpreadsheetTest
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual(0.0, sheet.GetCellContents("A1"));
-            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));
-            sheet.SetCellContents("B1", new Formula("A1+1", x => x, x => true));
-            sheet.SetCellContents("B2", new Formula("A1+2", x => x, x => true));
-            sheet.SetCellContents("B3", new Formula("A1+3", x => x, x => true));
+            sheet.SetCellContents("A7", new Formula("3/ 0"));
+            sheet.SetCellContents("B1", new Formula("A1+1"));
+            sheet.SetCellContents("B2", new Formula("A1+2"));
+            sheet.SetCellContents("B3", new Formula("A1+3"));
             List<string> debug = new List<string>(sheet.SetCellContents("A1", 1.0));
             foreach (string s in debug)
             {
@@ -204,10 +204,10 @@ namespace SpreadsheetTest
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual("Test", sheet.GetCellContents("A1"));
-            sheet.SetCellContents("A7", new Formula("3/ 0", x => x, x => true));
-            sheet.SetCellContents("B1", new Formula("A1+1", x => x, x => true));
-            sheet.SetCellContents("B2", new Formula("A1+2", x => x, x => true));
-            sheet.SetCellContents("B3", new Formula("A1+3", x => x, x => true));
+            sheet.SetCellContents("A7", new Formula("3/ 0"));
+            sheet.SetCellContents("B1", new Formula("A1+1"));
+            sheet.SetCellContents("B2", new Formula("A1+2"));
+            sheet.SetCellContents("B3", new Formula("A1+3"));
             List<string> debug = new List<string>(sheet.SetCellContents("A1", "Test2"));
             foreach (string s in debug)
             {
@@ -216,19 +216,93 @@ namespace SpreadsheetTest
             Assert.AreEqual(4, debug.Count);
         }
         /// <summary>
-        /// Tests setting of cell with Formula that creates circular dependency
+        /// Tests setting of cell with Formula that creates circular dependency when previously the cell was empty
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(CircularException))]
-        public void testCircularFormula()
+        public void testCircularFormulaPrevEmpty()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", new Formula("17 + B1"));            
+            try
+            {
+                sheet.SetCellContents("B1", new Formula("3 + A1"));
+            }
+            catch (CircularException)
+            {
+                Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
+                Assert.AreEqual("", sheet.GetCellContents("B1"));
+                throw new CircularException();
+            }           
+        }
+        /// <summary>
+        /// Tests setting of cell with Formula that creates circular dependency when previously the cell contained text
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void testCircularFormulaPrevText()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetCellContents("A1", new Formula("17 + B1"));
-            sheet.SetCellContents("B1", "");
-            sheet.SetCellContents("B1", new Formula("3 + A1"));
-            Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
-            Assert.AreEqual("",sheet.GetCellContents("B1"));
-            Assert.AreEqual(new Formula("17+B1"), sheet.GetCellContents("B1"));
+            sheet.SetCellContents("B1", "Test");
+            try
+            {
+                sheet.SetCellContents("B1", new Formula("3 + A1"));
+            }
+            catch (CircularException)
+            {
+                Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
+                Assert.AreEqual("Test", sheet.GetCellContents("B1"));
+                throw new CircularException();
+            }
+        }
+        /// <summary>
+        /// Tests setting of cell with Formula that creates circular dependency when previously the cell contained a double
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void testCircularFormulaPrevDouble()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", new Formula("17 + B1"));
+            sheet.SetCellContents("B1",1.0);
+            try
+            {
+                sheet.SetCellContents("B1", new Formula("3 + A1"));
+            }
+            catch (CircularException)
+            {
+                Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
+                Assert.AreEqual(1.0, sheet.GetCellContents("B1"));
+                throw new CircularException();
+            }
+        }
+        /// <summary>
+        /// Tests setting of cell with Formula that creates circular dependency when previously the cell contained a Formula
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void testCircularFormulaPrevFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", new Formula("17 + B1"));
+            sheet.SetCellContents("B1", new Formula("3+  C1"));
+            try
+            {
+                sheet.SetCellContents("B1", new Formula("3 + A1"));
+            }
+            catch (CircularException)
+            {
+                Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
+                Assert.AreEqual(new Formula("3+C1"), sheet.GetCellContents("B1"));
+                List<string> debug = new List<string>(sheet.SetCellContents("C1", "F"));
+                foreach(string var in debug)
+                {
+                    Console.WriteLine(var);
+                }
+                Assert.AreEqual(3, debug.Count);
+                throw new CircularException();
+            }
         }
         //TODO Write test that invalid formula throws exception
     }

@@ -95,7 +95,7 @@ namespace SS
         /// <returns>List containing this cell and all of its dependent cells</returns>
         public override IList<string> SetCellContents(string name, Formula formula)
         {
-            Cell prevCell = new Cell(name, "toReplace");//stores previous cell if it already exists
+            Cell prevCell = new Cell(name, "");//stores previous cell if it already exists
             if (cells.ContainsKey(name))           
                 prevCell = cells[name];                   
             cells[name] = new Cell(name, formula);//Adds/replaces cell in dictionary
@@ -127,7 +127,9 @@ namespace SS
             
         }
         /// <summary>
-        /// Gets the immediate dependents of the cell with name
+        /// Gets the immediate dependents of the cell with name.
+        /// Throws ArgumentNullException if name is null.
+        /// Throws InvalidNameException if name is not valid.
         /// </summary>
         /// <param name="name">Cell to get dependents of</param>
         /// <returns>IEnumerable string representation of dependent cells</returns>
@@ -135,6 +137,8 @@ namespace SS
         {
             if (name is null)
                 throw new ArgumentNullException();
+            else if (!Regex.IsMatch(name, validName))
+                throw new InvalidNameException();
             else
                 return new List<string>(graph.GetDependents(name));
         }
