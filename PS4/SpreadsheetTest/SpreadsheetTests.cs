@@ -53,6 +53,10 @@ namespace SpreadsheetTest
             sheet.SetCellContents("A4", "");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(3, cells.Count);
+            Assert.IsTrue(cells.Contains("A1"));
+            Assert.IsTrue(cells.Contains("A2"));
+            Assert.IsTrue(cells.Contains("A3"));
+            Assert.IsFalse(cells.Contains("A4"));
         }
 
         /// <summary>
@@ -65,6 +69,16 @@ namespace SpreadsheetTest
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetCellContents("123A","Test");
         }
+        /// <summary>
+        /// Tests setting of cell with text and null name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testNullSetWithText()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents(null, "Test");
+        }
 
         /// <summary>
         /// Tests setting of cell with double and invalid name
@@ -76,6 +90,16 @@ namespace SpreadsheetTest
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetCellContents("123A", 1.123);
         }
+        /// <summary>
+        /// Tests setting of cell with double and null name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testNullSetWithDouble()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents(null, 1.123);
+        }
 
         /// <summary>
         /// Tests setting of cell with Formula and invalid name
@@ -86,6 +110,16 @@ namespace SpreadsheetTest
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetCellContents("123A", new Formula("17 + 3"));
+        }
+        /// <summary>
+        /// Tests setting of cell with Formula and null name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testNullSetWithFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents(null, new Formula("17 + 3"));
         }
 
         /// <summary>
@@ -304,6 +338,17 @@ namespace SpreadsheetTest
                 throw new CircularException();
             }
         }
-        //TODO Write test that invalid formula throws exception
+        /// <summary>
+        /// Creating Cell with invalid Formula throws FormulaFormatException
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void testSetInvalidFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetCellContents("A1", new Formula("17 + B1"));
+            sheet.SetCellContents("B1", new Formula("3+ + C1"));
+            
+        }
     }
 }

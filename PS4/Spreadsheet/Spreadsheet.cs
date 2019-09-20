@@ -13,7 +13,7 @@ namespace SS
     {
         private Dictionary<string, Cell> cells;
         private DependencyGraph graph;
-        private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//determines if cell name matches basic requirements
+        private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//Regex to determine if cell name matches basic requirements
         /// <summary>
         /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph
         /// </summary>
@@ -121,8 +121,8 @@ namespace SS
                         graph.AddDependency(var, name);
                     }
                 }                
-                cells[name] = prevCell;//restores cell value
-                throw new CircularException();//throws exception
+                cells[name] = prevCell;//restores cell to internal Dictionary
+                throw new CircularException();
             }
             
         }
@@ -163,12 +163,17 @@ namespace SS
             public Cell(string name, Object contents)
             {
                 if (contents is null)//ensures cell isn't set to null contents
-                    throw new ArgumentNullException();                
-                else if (System.Text.RegularExpressions.Regex.IsMatch(name, validName))
-                    this.name = name;
-                else
+                    throw new ArgumentNullException();
+                else if(name is null || !System.Text.RegularExpressions.Regex.IsMatch(name, validName))//Ensures name is valid (not null or invalid)
+                {
                     throw new InvalidNameException();
-                this.contents = contents;
+
+                }
+                else
+                {
+                    this.name = name;
+                    this.contents = contents;
+                }                    
             }
         }
     }
