@@ -14,14 +14,44 @@ namespace SS
         private Dictionary<string, Cell> cells;
         private DependencyGraph graph;
         private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//Regex to determine if cell name matches basic requirements
+
+        public override bool Changed { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+
         /// <summary>
-        /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph
+        /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph, uses self=>self as normalizer,
+        /// no extra validity conditions, and has version "default"
         /// </summary>
-        public Spreadsheet()
+        public Spreadsheet() : this(s => true, s => s, "default")
+        {
+        }
+        
+        /// <summary>
+        /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph, uses provided delegate normalizer,
+        /// and provided delegate validity conditions, and has version given by string
+        /// </summary>
+        /// <param name="isValid">Validity Checker Delegate for Cell Names</param>
+        /// <param name="normalize">Normalizer Delegate for Cell Names</param>
+        /// <param name="version">Version of the Spreadsheet</param>
+        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version): base(isValid, normalize, version)
         {
             this.cells = new Dictionary<string, Cell>();
+            this.graph = new DependencyGraph();            
+        }
+
+        /// <summary>
+        /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph, uses provided delegate normalizer,
+        /// and provided delegate validity conditions, and has version given by string
+        /// </summary>
+        /// <param name="filepath">string name of filepath to load for spreadsheet</param>
+        /// <param name="isValid">Validity Checker Delegate for Cell Names</param>
+        /// <param name="normalize">Normalizer Delegate for Cell Names</param>
+        /// <param name="version">Version of the Spreadsheet</param>
+        public Spreadsheet(string filepath, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
+        {
+            //IMPLEMENT SOME GETTERS TO GET THE FILE AND POPULATE THE DICTIONARY AND DEPENDENCYGRAPH FROM IT
+            this.cells = new Dictionary<string, Cell>();
             this.graph = new DependencyGraph();
-        }        
+        }
         /// <summary>
         /// Returns contents of cell with name. If value is null or invalid, throws InvalidNameException. If Cell hasn't had a value set (is empty),
         /// returns an empty string.
@@ -57,7 +87,7 @@ namespace SS
         /// <param name="name">Name of cell to set value</param>
         /// <param name="number">double to set cell contents to</param>
         /// <returns>List containing this cell and all of its dependent cells</returns>
-        public override IList<string> SetCellContents(string name, double number)
+        protected override IList<string> SetCellContents(string name, double number)
         {
             cells[name] = new Cell(name, number);
             return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
@@ -70,7 +100,7 @@ namespace SS
         /// <param name="name">Name of cell to set value</param>
         /// <param name="text">string to set contents of cell to</param>
         /// <returns>List containing this cell and all of its dependent cells</returns>
-        public override IList<string> SetCellContents(string name, string text)
+        protected override IList<string> SetCellContents(string name, string text)
         {
             if (text == "")//Checks if setting cell to empty
             {
@@ -93,7 +123,7 @@ namespace SS
         /// <param name="name">Name of cell to set value</param>
         /// <param name="formula">Formula to set contents of cell to</param>
         /// <returns>List containing this cell and all of its dependent cells</returns>
-        public override IList<string> SetCellContents(string name, Formula formula)
+        protected override IList<string> SetCellContents(string name, Formula formula)
         {
             Cell prevCell = new Cell(name, "");//stores previous cell if it already exists
             if (cells.ContainsKey(name))           
@@ -142,6 +172,37 @@ namespace SS
             else
                 return new List<string>(graph.GetDependents(name));
         }
+
+        public override string GetSavedVersion(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Save(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object GetCellValue(string name)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Sets contents of cell with name to content. If it is a number, sets it to that number. If it is text, sets it to that text,
+        /// if it is a formula, sets it to that formula
+        /// </summary>
+        /// <param name="name">Cell name</param>
+        /// <param name="content">Content to set</param>
+        /// <returns></returns>
+        public override IList<string> SetContentsOfCell(string name, string content)
+        {
+            if (content is null)
+                throw new ArgumentNullException();
+            if (name is null)
+                throw new InvalidNameException();
+
+        }
+
         /// <summary>
         /// This class represents one cell of a Spreadsheet, containing it's contents (what is entered into the cell) and it's value 
         /// (what would be displayed in the cell). It keeps track of it's dependencies and dependees with a DependencyGraph, and if it contains
@@ -179,4 +240,3 @@ namespace SS
     }
         
 }
-

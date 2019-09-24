@@ -1,8 +1,8 @@
-﻿Hunter Schmidt - 9/19/19
-I wrote a private class to represent cells as self-contained "units" which can store a text formula and/or a value. The Spreadsheet object itslef will store a DependencyGraph
-that maps each cell to its dependents and dependees.
-I am using the GetCellsToRecalculate method to get a list of a cell and all its dependents to return when setting cell values, and as it throws a
-CircularException when a new Formula causes a circular dependency, I am catching that exception to revert changes made to the offending cell,
-then re-throwing the exception.
+﻿Hunter Schmidt - 9/23/2019
+I think the first step is to fix all of the "errors" caused by changing the API (ie: create valid constructors and function stubs),
+and allow the project to compile. 
+Then, I want to implement SetContentsOfCell and change my test cases to test that function. Then I will get to work on the file saving and validation 
+features of the new API.
 
-Currently I am using updated versions of Formula and DependencyGraph that pass all of the Grading Tests.
+Currently I am using updated versions of Formula and DependencyGraph that pass all of the Grading Tests, 
+and my original PS4 Solution which was submitted for grading.
