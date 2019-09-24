@@ -14,6 +14,7 @@ namespace SS
         private Dictionary<string, Cell> cells;
         private DependencyGraph graph;
         private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//Regex to determine if cell name matches basic requirements
+        private static readonly string isFormula = @"^=";//Regex to determine if string is a formula
 
         public override bool Changed { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
 
@@ -198,9 +199,27 @@ namespace SS
         {
             if (content is null)
                 throw new ArgumentNullException();
-            if (name is null)
+            else if (name is null || !IsValid(Normalize(name)))
                 throw new InvalidNameException();
-
+            
+                double dcontents;
+                if (Double.TryParse(content, out dcontents))
+                {
+                    return this.SetCellContents(name, dcontents);
+                }
+                else if (Regex.IsMatch(content, isFormula))
+                {
+                    try
+                    {
+                        return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));
+                    }
+                    catch (FormulaFormatException)
+                    {
+                        
+                    }
+                }                
+            return this.SetCellContents(name, content);
+                        
         }
 
         /// <summary>

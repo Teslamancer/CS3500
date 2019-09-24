@@ -47,10 +47,10 @@ namespace SpreadsheetTest
         public void testGetNonEmpty()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", "Text");
-            sheet.SetCellContents("A2", 1.5);
-            sheet.SetCellContents("A3", new Formula("3 + 5"));
-            sheet.SetCellContents("A4", "");
+            sheet.SetContentsOfCell("A1", "Text");
+            sheet.SetContentsOfCell("A2", "1.5");
+            sheet.SetContentsOfCell("A3", "=3 + 5");
+            sheet.SetContentsOfCell("A4", "");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(3, cells.Count);
             Assert.IsTrue(cells.Contains("A1"));
@@ -67,7 +67,7 @@ namespace SpreadsheetTest
         public void testInvalidSetWithText()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("123A","Test");
+            sheet.SetContentsOfCell("123A","Test");
         }
         /// <summary>
         /// Tests setting of cell with text and null name
@@ -77,7 +77,7 @@ namespace SpreadsheetTest
         public void testNullSetWithText()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents(null, "Test");
+            sheet.SetContentsOfCell(null, "Test");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace SpreadsheetTest
         public void testInvalidSetWithDouble()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("123A", 1.123);
+            sheet.SetContentsOfCell("123A", "1.123");
         }
         /// <summary>
         /// Tests setting of cell with double and null name
@@ -98,7 +98,7 @@ namespace SpreadsheetTest
         public void testNullSetWithDouble()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents(null, 1.123);
+            sheet.SetContentsOfCell(null, "1.123");
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace SpreadsheetTest
         public void testInvalidSetWithFormula()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("123A", new Formula("17 + 3"));
+            sheet.SetContentsOfCell("123A", "=17 + 3");
         }
         /// <summary>
         /// Tests setting of cell with Formula and null name
@@ -119,7 +119,7 @@ namespace SpreadsheetTest
         public void testNullSetWithFormula()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents(null, new Formula("17 + 3"));
+            sheet.SetContentsOfCell(null, "=17 + 3");
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace SpreadsheetTest
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
             string s = null;
-            sheet.SetCellContents("A1", s);
+            sheet.SetContentsOfCell("A1", s);
         }
         /// <summary>
         /// Tests setting of cell with null Formula and valid name
@@ -141,8 +141,8 @@ namespace SpreadsheetTest
         public void testInvalidNullSetWithFormula()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            Formula f = null;
-            sheet.SetCellContents("A1", f);
+            
+            sheet.SetContentsOfCell("A1", null);
         }
         /// <summary>
         /// Tests Get and Set Methods for cells, and that setting an existing cell overwrites contents
@@ -151,13 +151,13 @@ namespace SpreadsheetTest
         public void testSetAndGet()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", 1.5);
+            sheet.SetContentsOfCell("A1", "1.5");
             Assert.AreEqual(1.5, sheet.GetCellContents("A1"));
 
-            sheet.SetCellContents("A1", "Test");
+            sheet.SetContentsOfCell("A1", "Test");
             Assert.AreEqual("Test", sheet.GetCellContents("A1"));
 
-            sheet.SetCellContents("A1", new Formula("1 + 1"));
+            sheet.SetContentsOfCell("A1", "=1 + 1");
             Assert.AreEqual(new Formula("1+1"), sheet.GetCellContents("A1"));
         }
         /// <summary>
@@ -167,8 +167,8 @@ namespace SpreadsheetTest
         public void testDeleteCell()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", "Test");
-            sheet.SetCellContents("A1", "");
+            sheet.SetContentsOfCell("A1", "Test");
+            sheet.SetContentsOfCell("A1", "");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(0, cells.Count);
             Assert.AreEqual("",sheet.GetCellContents("A1"));
@@ -189,20 +189,20 @@ namespace SpreadsheetTest
         public void testSetFormula()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A3", new Formula("3 + 5"));
+            sheet.SetContentsOfCell("A3", "=3 + 5");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual(new Formula("3+5"), sheet.GetCellContents("A3"));
-            sheet.SetCellContents("A7", new Formula("3/ 0"));
-            sheet.SetCellContents("B1", new Formula("A1+1"));
-            sheet.SetCellContents("B2", new Formula("A1+2"));
-            sheet.SetCellContents("B3", new Formula("A1+3"));
-            List<string> debug = new List<string>(sheet.SetCellContents("A1", new Formula("3/ 0")));
+            sheet.SetContentsOfCell("A7", "=3/ 0");
+            sheet.SetContentsOfCell("B1", "=A1+1");
+            sheet.SetContentsOfCell("B2", "=A1+2");
+            sheet.SetContentsOfCell("B3", "=A1+3");
+            List<string> debug = new List<string>(sheet.SetContentsOfCell("A1", "=3/ 0"));
             foreach(string s in debug)
             {
                 Console.WriteLine(s);
             }
-            Assert.AreEqual(4, sheet.SetCellContents("A1", new Formula("3/ 0")).Count);
+            Assert.AreEqual(4, sheet.SetContentsOfCell("A1", "=3/ 0").Count);
         }
         /// <summary>
         /// Tests setting cell with double
@@ -211,15 +211,15 @@ namespace SpreadsheetTest
         public void testSetDouble()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", 0.0);
+            sheet.SetContentsOfCell("A1", "0.0");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual(0.0, sheet.GetCellContents("A1"));
-            sheet.SetCellContents("A7", new Formula("3/ 0"));
-            sheet.SetCellContents("B1", new Formula("A1+1"));
-            sheet.SetCellContents("B2", new Formula("A1+2"));
-            sheet.SetCellContents("B3", new Formula("A1+3"));
-            List<string> debug = new List<string>(sheet.SetCellContents("A1", 1.0));
+            sheet.SetContentsOfCell("A7", "=3/ 0");
+            sheet.SetContentsOfCell("B1", "=A1+1");
+            sheet.SetContentsOfCell("B2", "=A1+2");
+            sheet.SetContentsOfCell("B3", "=A1+3");
+            List<string> debug = new List<string>(sheet.SetContentsOfCell("A1", "1.0"));
             foreach (string s in debug)
             {
                 Console.WriteLine(s);
@@ -234,15 +234,15 @@ namespace SpreadsheetTest
         public void testSetText()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", "Test");
+            sheet.SetContentsOfCell("A1", "Test");
             List<string> cells = new List<string>(sheet.GetNamesOfAllNonemptyCells());
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual("Test", sheet.GetCellContents("A1"));
-            sheet.SetCellContents("A7", new Formula("3/ 0"));
-            sheet.SetCellContents("B1", new Formula("A1+1"));
-            sheet.SetCellContents("B2", new Formula("A1+2"));
-            sheet.SetCellContents("B3", new Formula("A1+3"));
-            List<string> debug = new List<string>(sheet.SetCellContents("A1", "Test2"));
+            sheet.SetContentsOfCell("A7", "=3/ 0");
+            sheet.SetContentsOfCell("B1", "=A1+1");
+            sheet.SetContentsOfCell("B2", "=A1+2");
+            sheet.SetContentsOfCell("B3", "=A1+3");
+            List<string> debug = new List<string>(sheet.SetContentsOfCell("A1", "Test2"));
             foreach (string s in debug)
             {
                 Console.WriteLine(s);
@@ -257,10 +257,10 @@ namespace SpreadsheetTest
         public void testCircularFormulaPrevEmpty()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", new Formula("17 + B1"));            
+            sheet.SetContentsOfCell("A1", "=17 + B1");            
             try
             {
-                sheet.SetCellContents("B1", new Formula("3 + A1"));
+                sheet.SetContentsOfCell("B1", "=3 + A1");
             }
             catch (CircularException)
             {
@@ -277,11 +277,11 @@ namespace SpreadsheetTest
         public void testCircularFormulaPrevText()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", new Formula("17 + B1"));
-            sheet.SetCellContents("B1", "Test");
+            sheet.SetContentsOfCell("A1", "=17 + B1");
+            sheet.SetContentsOfCell("B1", "Test");
             try
             {
-                sheet.SetCellContents("B1", new Formula("3 + A1"));
+                sheet.SetContentsOfCell("B1", "=3 + A1");
             }
             catch (CircularException)
             {
@@ -298,11 +298,11 @@ namespace SpreadsheetTest
         public void testCircularFormulaPrevDouble()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", new Formula("17 + B1"));
-            sheet.SetCellContents("B1",1.0);
+            sheet.SetContentsOfCell("A1", "=17 + B1");
+            sheet.SetContentsOfCell("B1","1.0");
             try
             {
-                sheet.SetCellContents("B1", new Formula("3 + A1"));
+                sheet.SetContentsOfCell("B1", "=3 + A1");
             }
             catch (CircularException)
             {
@@ -319,17 +319,17 @@ namespace SpreadsheetTest
         public void testCircularFormulaPrevFormula()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", new Formula("17 + B1"));
-            sheet.SetCellContents("B1", new Formula("3+  C1"));
+            sheet.SetContentsOfCell("A1", "=17 + B1");
+            sheet.SetContentsOfCell("B1", "=3+  C1");
             try
             {
-                sheet.SetCellContents("B1", new Formula("3 + A1"));
+                sheet.SetContentsOfCell("B1", "=3 + A1");
             }
             catch (CircularException)
             {
                 Assert.AreNotEqual(new Formula("3+A1"), sheet.GetCellContents("B1"));
                 Assert.AreEqual(new Formula("3+C1"), sheet.GetCellContents("B1"));
-                List<string> debug = new List<string>(sheet.SetCellContents("C1", "F"));
+                List<string> debug = new List<string>(sheet.SetContentsOfCell("C1", "F"));
                 foreach(string var in debug)
                 {
                     Console.WriteLine(var);
@@ -339,16 +339,16 @@ namespace SpreadsheetTest
             }
         }
         /// <summary>
-        /// Creating Cell with invalid Formula throws FormulaFormatException
+        /// Creating Cell with invalid Formula throws FormulaFormatException, Commented out as this just sets conents to text
         /// </summary>
-        [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
-        public void testSetInvalidFormula()
-        {
-            AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A1", new Formula("17 + B1"));
-            sheet.SetCellContents("B1", new Formula("3+ + C1"));
+        //[TestMethod]
+        //[ExpectedException(typeof(FormulaFormatException))]
+        //public void testSetInvalidFormula()
+        //{
+        //    AbstractSpreadsheet sheet = new Spreadsheet();
+        //    sheet.SetContentsOfCell("A1", "=17 + B1");
+        //    sheet.SetContentsOfCell("B1", "=3+ + C1");
             
-        }
+        //}
     }
 }
