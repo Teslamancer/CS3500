@@ -36,7 +36,7 @@ namespace SS
         public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version): base(isValid, normalize, version)
         {
             this.cells = new Dictionary<string, Cell>();
-            this.graph = new DependencyGraph();            
+            this.graph = new DependencyGraph();
         }
 
         /// <summary>

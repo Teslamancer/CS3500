@@ -412,5 +412,80 @@ namespace SpreadsheetTest
             s.SetContentsOfCell("A1", "changed");
             Assert.IsTrue(s.Changed);
         }
+        /// <summary>
+        /// Tests that loading file with null filename throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testNullGetSaved()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.Save("nullLoad.XML");
+            s.GetSavedVersion(null);
+        }
+        /// <summary>
+        /// Tests that loading file with nonexistant filename throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testNonExistantGetSaved()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.Save("nullLoad.XML");
+            s.GetSavedVersion("ThisFileIsNotReal.XML");
+        }
+        /// <summary>
+        /// Tests that trying to get value of cell with null name throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testNullNameGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.GetCellValue(null);
+        }
+        /// <summary>
+        /// Tests that trying to get value of cell with invalid name throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testInvalidNameGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.GetCellValue("1A");
+        }
+        /// <summary>
+        /// Tests getting cell value
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "String");
+            s.SetContentsOfCell("A2", "1.0");
+            s.SetContentsOfCell("A3", "=A2 +2");
+            Assert.AreEqual("String", s.GetCellValue("A1"));
+            Assert.AreEqual(1.0, s.GetCellValue("A2"));
+            Assert.AreEqual(3.0, s.GetCellValue("A3"));
+            s.SetContentsOfCell("A3", "=3/0");
+            Assert.AreEqual(typeof(FormulaError), s.GetCellValue("A3").GetType());
+        }
+        /// <summary>
+        /// Tests that getting and setting spreadsheet properties works
+        /// </summary>
+        [TestMethod]
+        public void testProperties()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            Assert.AreEqual("default", sheet.Version);
+            Assert.AreEqual(s => true, sheet.IsValid);
+            Assert.AreEqual(s => s, sheet.Normalize);
+
+            sheet = new Spreadsheet( x => false, x => x.ToUpper(), "Test");
+            Assert.AreEqual("Test", sheet.Version);
+            Assert.AreEqual(x => false, sheet.IsValid);
+            Assert.AreEqual(x => x.ToUpper(), sheet.Normalize);
+        }
     }
 }
