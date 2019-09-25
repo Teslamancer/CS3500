@@ -50,6 +50,7 @@ namespace SS
         public Spreadsheet(string filepath, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             //IMPLEMENT SOME GETTERS TO GET THE FILE AND POPULATE THE DICTIONARY AND DEPENDENCYGRAPH FROM IT
+            throw new NotImplementedException();
             this.cells = new Dictionary<string, Cell>();
             this.graph = new DependencyGraph();
         }
@@ -167,9 +168,9 @@ namespace SS
         /// <returns>IEnumerable string representation of dependent cells</returns>
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            if (name is null)
+            if (name is null)//double checks name is not null or invalid
                 throw new ArgumentNullException();
-            else if (!Regex.IsMatch(name, validName))
+            else if (!Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))
                 throw new InvalidNameException();
             else
                 return new List<string>(graph.GetDependents(name));
@@ -190,7 +191,9 @@ namespace SS
             throw new NotImplementedException();
         }
         /// <summary>
-        /// Sets contents of cell with name to content. If it is a number, sets it to that number. If it is text, sets it to that text,
+        /// Sets contents of cell with name to content. Throws InvalidNameException if name is null or invalid 
+        /// (checking validity with both basic requirements and provided delegate. Throws Argument NullException if content is null.
+        /// If it is a number, sets it to that number. If it is text, sets it to that text,
         /// if it is a formula, sets it to that formula
         /// </summary>
         /// <param name="name">Cell name</param>
@@ -198,10 +201,11 @@ namespace SS
         /// <returns></returns>
         public override IList<string> SetContentsOfCell(string name, string content)
         {
-            if (content is null)
+            if (content is null)//check if content is null
                 throw new ArgumentNullException();
-            else if (name is null || !Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))
+            else if (name is null || !Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))//check name is not null or invalid
                 throw new InvalidNameException();
+            //checks if cell previously contained Formula, and removes previous dependencies if it had any.
             else if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula))
             {
                 Formula f = (Formula)cells[name].contents;
@@ -211,15 +215,15 @@ namespace SS
                 }
             }
             double dcontents;
-            if (Double.TryParse(content, out dcontents))
+            if (Double.TryParse(content, out dcontents))//checks if content is double
             {
                 return this.SetCellContents(name, dcontents);
             }
-            else if (Regex.IsMatch(content, isFormula))
+            else if (Regex.IsMatch(content, isFormula))//checks if content is a formula
             {
                 return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
             }                
-            return this.SetCellContents(name, content);
+            return this.SetCellContents(name, content);//sets cell content as string text of content
                         
         }
 

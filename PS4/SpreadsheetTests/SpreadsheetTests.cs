@@ -360,7 +360,57 @@ namespace SpreadsheetTest
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.SetContentsOfCell("A1", "=17 + B1");
             sheet.SetContentsOfCell("B1", "=");
-
+        }
+        /// <summary>
+        /// Creating Cell with space before equals sign sets to text, not Formula
+        /// </summary>
+        [TestMethod]
+        public void testSetWhitespaceFirstFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", " =17 + B1");
+            sheet.SetContentsOfCell("B1", "\t=2.1");
+            Assert.AreEqual(" =17 + B1", sheet.GetCellContents("A1"));
+            Assert.AreEqual("\t=2.1", sheet.GetCellContents("B1"));
+        }
+        /// <summary>
+        /// Tests that all three constructors work and don't throw
+        /// </summary>
+        [TestMethod]
+        public void testConstructors()
+        {
+            AbstractSpreadsheet emptyConstructor = new Spreadsheet();
+            AbstractSpreadsheet threeArgConstructor = new Spreadsheet(s => true, s => s.ToUpper(), "4ArgTestSheet");
+            AbstractSpreadsheet fourArgConstructor = new Spreadsheet("4ArgTestSheet",s => true, s => s.ToUpper(), "Test4Args");
+        }
+        /// <summary>
+        /// Tests the Changed property of the spreadsheet
+        /// </summary>
+        [TestMethod]
+        public void testChanged()
+        {
+            //COMMENTED PORTION AWAITING CLARIFICATION
+            //AbstractSpreadsheet original = new Spreadsheet(x => true, x => x, "Default");
+            //original.SetContentsOfCell("A1", "Test");
+            //original.SetContentsOfCell("A2", "Test");
+            //original.SetContentsOfCell("A3", "Test");
+            //original.SetContentsOfCell("A4", "Test");
+            //original.Save("OriginalSpreadsheet.XML");
+            //Assert.IsFalse(original.Changed);
+            //AbstractSpreadsheet copyOriginal = new Spreadsheet("OriginalSpreadsheet.XML", x => true, x=>x,"Default");
+            //Assert.IsFalse(copyOriginal.Changed);
+            AbstractSpreadsheet s = new Spreadsheet();
+            Assert.IsFalse(s.Changed);
+            s.SetContentsOfCell("A1","");
+            Assert.IsFalse(s.Changed);
+            s.SetContentsOfCell("A1", "Test");
+            Assert.IsTrue(s.Changed);
+            s.Save("changedTestSheet.XML");
+            Assert.IsFalse(s.Changed);
+            s.SetContentsOfCell("A1", "Test");
+            Assert.IsFalse(s.Changed);
+            s.SetContentsOfCell("A1", "changed");
+            Assert.IsTrue(s.Changed);
         }
     }
 }
