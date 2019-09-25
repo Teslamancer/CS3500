@@ -90,6 +90,18 @@ namespace SS
         /// <returns>List containing this cell and all of its dependent cells</returns>
         protected override IList<string> SetCellContents(string name, double number)
         {
+            if(name is null)
+            {
+                throw new InvalidNameException();
+            }
+            if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula))
+            {
+                Formula f = (Formula)cells[name].contents;
+                foreach (string dependency in f.GetVariables())
+                {
+                    graph.RemoveDependency(dependency, name);
+                }
+            }
             cells[name] = new Cell(name, number);
             return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
         }
@@ -103,6 +115,18 @@ namespace SS
         /// <returns>List containing this cell and all of its dependent cells</returns>
         protected override IList<string> SetCellContents(string name, string text)
         {
+            if (name is null)
+            {
+                throw new InvalidNameException();
+            }
+            if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula))
+            {
+                Formula f = (Formula)cells[name].contents;
+                foreach(string dependency in f.GetVariables())
+                {
+                    graph.RemoveDependency(dependency, name);
+                }
+            }
             if (text == "")//Checks if setting cell to empty
             {
                 if (cells.ContainsKey(name))
@@ -112,6 +136,7 @@ namespace SS
             {
                 cells[name] = new Cell(name, text);
             }            
+            
             return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
 
         }
