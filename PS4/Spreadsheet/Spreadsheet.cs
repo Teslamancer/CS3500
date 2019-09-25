@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using SpreadsheetUtilities;
 //Developed by Hunter Schmidt
 namespace SS
@@ -16,7 +17,7 @@ namespace SS
         private static readonly string validName = @"^[a-zA-Z]+[0-9]+$";//Regex to determine if cell name matches basic requirements
         private static readonly string isFormula = @"^=";//Regex to determine if string is a formula
 
-        public override bool Changed { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+        public override bool Changed { get; protected set; }
 
         /// <summary>
         /// Initializes Spreadsheet with a Dictionary of Cells and DependencyGraph, uses self=>self as normalizer,
@@ -107,7 +108,7 @@ namespace SS
             if (text == "")//Checks if setting cell to empty
             {
                 if (cells.ContainsKey(name))
-                    cells.Remove(name);
+                    cells.Remove(name);                
             }
             else
             {
@@ -183,7 +184,26 @@ namespace SS
 
         public override void Save(string filename)
         {
-            throw new NotImplementedException();
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.IndentChars = "\t";
+            settings.OmitXmlDeclaration = true;
+
+            using(XmlWriter w = XmlWriter.Create(filename, settings))
+            {
+                w.WriteStartDocument();
+                w.WriteStartElement("spreadsheet");
+                // This adds an attribute to the Nation element
+                w.WriteAttributeString("version", Version);
+                foreach(string cell in GetNamesOfAllNonemptyCells())
+                {
+                    CelltoXML(w, cell);
+                }
+                
+                w.WriteEndElement(); // Ends the spreadsheet block
+                w.WriteEndDocument();
+            }
+            Changed = false;
         }
 
         public override object GetCellValue(string name)
@@ -217,14 +237,36 @@ namespace SS
             double dcontents;
             if (Double.TryParse(content, out dcontents))//checks if content is double
             {
+                if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(double) && dcontents == (double)GetCellContents(name))
+                    Changed = false;
+                else                
+                    Changed = true;
                 return this.SetCellContents(name, dcontents);
             }
             else if (Regex.IsMatch(content, isFormula))//checks if content is a formula
             {
+                if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula) && content.TrimStart('=') == (GetCellContents(name).ToString()))
+                    Changed = false;
+                else
+                    Changed = true;                
                 return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
-            }                
+            }
+            if ((content == "" && !cells.ContainsKey(name)) || (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(string) && content == (string)GetCellContents(name)))
+                Changed = false;
+            else            
+                Changed = true;            
             return this.SetCellContents(name, content);//sets cell content as string text of content
                         
+        }
+        /// <summary>
+        /// Writes Cell Contents to an XML format
+        /// </summary>
+        private void CelltoXML(XmlWriter w, string name)
+        {
+            w.WriteStartElement("cell");
+            w.WriteElementString("name", name);
+            w.WriteElementString("contents", GetCellContents(name).ToString());
+            w.WriteEndElement();
         }
 
         /// <summary>

@@ -475,6 +475,7 @@ namespace SpreadsheetTest
         /// Tests that getting and setting spreadsheet properties works
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
         public void testProperties()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
@@ -486,6 +487,27 @@ namespace SpreadsheetTest
             Assert.AreEqual("Test", sheet.Version);
             Assert.AreEqual(x => false, sheet.IsValid);
             Assert.AreEqual(x => x.ToUpper(), sheet.Normalize);
+            sheet.Save("PropertiesTest.XML");
+
+            AbstractSpreadsheet testSheet = new Spreadsheet("PropertiesTest.XML", x => false, x => x.ToUpper(), "Test");
+            Assert.AreEqual("Test", testSheet.Version);
+            Assert.AreEqual(x => false, testSheet.IsValid);
+            Assert.AreEqual(x => x.ToUpper(), testSheet.Normalize);
+
+            AbstractSpreadsheet exceptor = new Spreadsheet("PropertiesTest.XML", x => false, x => x.ToUpper(), "Different");
+        }
+        /// <summary>
+        /// Tests saving spreadsheet
+        /// </summary>
+        [TestMethod]
+        public void testSave()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "1.0");
+            s.SetContentsOfCell("A2", "Test");
+            s.SetContentsOfCell("A3", "=A1 + 10");
+            s.SetContentsOfCell("A2", "Replaced!");
+            s.Save("FINDME.xml");
         }
     }
 }
