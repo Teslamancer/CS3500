@@ -13,7 +13,7 @@ namespace SS
     {
         private Dictionary<string, Cell> cells;
         private DependencyGraph graph;
-        private static readonly string validName = @"^[a-zA-Z_]+[a-zA-Z0-9_]*$";//Regex to determine if cell name matches basic requirements
+        private static readonly string validName = @"^[a-zA-Z]+[0-9]+$";//Regex to determine if cell name matches basic requirements
         private static readonly string isFormula = @"^=";//Regex to determine if string is a formula
 
         public override bool Changed { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
@@ -90,18 +90,6 @@ namespace SS
         /// <returns>List containing this cell and all of its dependent cells</returns>
         protected override IList<string> SetCellContents(string name, double number)
         {
-            if(name is null)
-            {
-                throw new InvalidNameException();
-            }
-            if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula))
-            {
-                Formula f = (Formula)cells[name].contents;
-                foreach (string dependency in f.GetVariables())
-                {
-                    graph.RemoveDependency(dependency, name);
-                }
-            }
             cells[name] = new Cell(name, number);
             return new List<string>(GetCellsToRecalculate(name));//uses GetCellsToRecalculate to get all dependents
         }
@@ -114,19 +102,7 @@ namespace SS
         /// <param name="text">string to set contents of cell to</param>
         /// <returns>List containing this cell and all of its dependent cells</returns>
         protected override IList<string> SetCellContents(string name, string text)
-        {
-            if (name is null)
-            {
-                throw new InvalidNameException();
-            }
-            if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula))
-            {
-                Formula f = (Formula)cells[name].contents;
-                foreach(string dependency in f.GetVariables())
-                {
-                    graph.RemoveDependency(dependency, name);
-                }
-            }
+        {           
             if (text == "")//Checks if setting cell to empty
             {
                 if (cells.ContainsKey(name))
@@ -224,18 +200,25 @@ namespace SS
         {
             if (content is null)
                 throw new ArgumentNullException();
-            else if (name is null || !IsValid(Normalize(name)))
+            else if (name is null || !Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))
                 throw new InvalidNameException();
-            
-                double dcontents;
-                if (Double.TryParse(content, out dcontents))
+            else if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula))
+            {
+                Formula f = (Formula)cells[name].contents;
+                foreach (string dependency in f.GetVariables())
                 {
-                    return this.SetCellContents(name, dcontents);
+                    graph.RemoveDependency(dependency, name);
                 }
-                else if (Regex.IsMatch(content, isFormula))
-                {
-                    return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
-                }                
+            }
+            double dcontents;
+            if (Double.TryParse(content, out dcontents))
+            {
+                return this.SetCellContents(name, dcontents);
+            }
+            else if (Regex.IsMatch(content, isFormula))
+            {
+                return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
+            }                
             return this.SetCellContents(name, content);
                         
         }
