@@ -341,14 +341,26 @@ namespace SpreadsheetTest
         /// <summary>
         /// Creating Cell with invalid Formula throws FormulaFormatException, Commented out as this just sets conents to text
         /// </summary>
-        //[TestMethod]
-        //[ExpectedException(typeof(FormulaFormatException))]
-        //public void testSetInvalidFormula()
-        //{
-        //    AbstractSpreadsheet sheet = new Spreadsheet();
-        //    sheet.SetContentsOfCell("A1", "=17 + B1");
-        //    sheet.SetContentsOfCell("B1", "=3+ + C1");
-            
-        //}
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void testSetInvalidFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", "=17 + B1");
+            sheet.SetContentsOfCell("B1", "=3+ + C1");
+
+        }
+        /// <summary>
+        /// Creating Cell with Empty Formula throws FormulaFormatException, or does it just set to text?
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void testSetEmptyFormula()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", "=17 + B1");
+            sheet.SetContentsOfCell("B1", "=");
+
+        }
     }
 }

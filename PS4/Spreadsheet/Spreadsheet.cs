@@ -209,14 +209,7 @@ namespace SS
                 }
                 else if (Regex.IsMatch(content, isFormula))
                 {
-                    try
-                    {
-                        return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));
-                    }
-                    catch (FormulaFormatException)
-                    {
-                        
-                    }
+                    return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
                 }                
             return this.SetCellContents(name, content);
                         
