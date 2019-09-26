@@ -192,13 +192,13 @@ namespace SS
             settings.OmitXmlDeclaration = true;
             try
             {
-                using (XmlWriter w = XmlWriter.Create(filename, settings))
+                using (XmlWriter w = XmlWriter.Create(filename, settings))//Writes beginning and end of XML doc
                 {
                     w.WriteStartDocument();
                     w.WriteStartElement("spreadsheet");
                     // This adds an attribute to the Nation element
                     w.WriteAttributeString("version", Version);
-                    foreach (string cell in GetNamesOfAllNonemptyCells())
+                    foreach (string cell in GetNamesOfAllNonemptyCells())//Writes for each nonempty cell in helper method
                     {
                         CelltoXML(w, cell);
                     }
@@ -207,22 +207,51 @@ namespace SS
                     w.WriteEndDocument();
                 }
             }            
-            catch(System.IO.DirectoryNotFoundException)
+            catch(System.IO.DirectoryNotFoundException)//catches if path is invalid
             {
                 //Console.WriteLine("InvalidPath");
                 throw new SpreadsheetReadWriteException("Invalid Path!");
             }
-            catch(System.IO.IOException)
+            catch(System.IO.IOException)//catches if filename is invalid
             {
                 //Console.WriteLine("InvalidNameException");
                 throw new SpreadsheetReadWriteException("Invalid Filename!");
             }
             Changed = false;
         }
-
+        /// <summary>
+        /// Returns value stored at cell with name.
+        /// Throws InvalidNameException if name is null or invalid according to delegates or base
+        /// </summary>
+        /// <param name="name">Cell to retrieve value from</param>
+        /// <returns></returns>
         public override object GetCellValue(string name)
         {
-            throw new NotImplementedException();
+            if (name is null || !Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))//checks if name is null or invalid
+            {
+                throw new InvalidNameException();
+            }
+            else
+            {
+                //object toReturn = null;
+                //object value = cells[name].value;
+                //if (value.GetType() == typeof(FormulaError))//checks if value is formulaerror
+                //{
+                //    toReturn = new FormulaError();
+                //    toReturn = (FormulaError)value;
+                //}
+                //else if (value.GetType() == typeof(double))//checks if value is double
+                //{
+                //    toReturn = new double();
+                //    toReturn = (double)value;
+                //}
+                //else//else, makes it string
+                //{
+                //    toReturn = (string)value;
+                //}
+                //return toReturn;
+                return cells[name].value;
+            }
         }
         /// <summary>
         /// Sets contents of cell with name to content. Throws InvalidNameException if name is null or invalid 
@@ -233,7 +262,7 @@ namespace SS
         /// <param name="name">Cell name</param>
         /// <param name="content">Content to set</param>
         /// <returns></returns>
-        public override IList<string> SetContentsOfCell(string name, string content)
+        public override IList<string> SetContentsOfCell(string name, string content)//ADD RECALULATING CELL LOGIC
         {
             if (content is null)//check if content is null
                 throw new ArgumentNullException();
@@ -285,6 +314,22 @@ namespace SS
             w.WriteElementString("contents", toWrite + GetCellContents(name).ToString());
             w.WriteEndElement();
         }
+        /// <summary>
+        /// Returns value of cell as double given name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private double cellLookup(string name)//WHAT ABOUT FORMULAERROR
+        {
+            if(cells[name].value.GetType() == typeof(string))
+            {
+                throw new ArgumentException();
+            }
+            else
+            {
+                return (double)cells[name].value;
+            }
+        }
 
         /// <summary>
         /// This class represents one cell of a Spreadsheet, containing it's contents (what is entered into the cell) and it's value 
@@ -305,19 +350,27 @@ namespace SS
             /// </summary>
             /// <param name="contents"></param>
             public Cell(string name, Object contents)
+            {                            
+                this.name = name;
+                this.contents = contents;
+                this.value = calculateValue();                
+            }
+            /// <summary>
+            /// Calculates and sets value for cell
+            /// </summary>
+            protected object calculateValue()
             {
-                if (contents is null)//ensures cell isn't set to null contents
-                    throw new ArgumentNullException();
-                else if(name is null || !System.Text.RegularExpressions.Regex.IsMatch(name, validName))//Ensures name is valid (not null or invalid)
+                if(contents.GetType() == typeof(string))
+                    return (string)contents;
+                else if (contents.GetType() == typeof(double))
                 {
-                    throw new InvalidNameException();
-
+                    return (double)contents;
                 }
                 else
                 {
-                    this.name = name;
-                    this.contents = contents;
-                }                    
+                    Formula f = (Formula)contents;
+                    return f.Evaluate();
+                }
             }
         }
     }

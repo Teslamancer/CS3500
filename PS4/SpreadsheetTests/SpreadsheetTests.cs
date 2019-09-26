@@ -612,7 +612,7 @@ namespace SpreadsheetTest
             s.SetContentsOfCell("A2", "Test");
             s.SetContentsOfCell("A3", "=A1 + 10");
             s.SetContentsOfCell("A2", "Replaced!");
-            s.Save(@"asdf!!""asdf.xml");
+            s.Save("as?_-@#$%^&*()df!\'!\"asdf.xml");
         }
         /// <summary>
         /// Tests Saving with a filename that is too long
@@ -636,7 +636,7 @@ namespace SpreadsheetTest
         public void testGetSavedVersionInvalidDirectory()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.GetSavedVersion("this/path/does/not/exist");
+            s.GetSavedVersion("this/path/does/not/exist.xml");
         }
         /// <summary>
         /// Tests getting saved version with invalid file
@@ -645,8 +645,57 @@ namespace SpreadsheetTest
         [ExpectedException(typeof(SpreadsheetReadWriteException))]
         public void testGetSavedVersionInvalidFile()
         {
+            using(XmlWriter w = XmlWriter.Create("unreal.xml"))
+            {
+                w.WriteStartDocument();
+                w.WriteEndDocument();
+            }
             AbstractSpreadsheet s = new Spreadsheet();
-            s.GetSavedVersion("this/path/does/not/exist");
+            s.GetSavedVersion("unreal.xml");
+        }
+        /// <summary>
+        /// Tests that trying to get value of null cell throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testNullGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1","Test");
+            s.GetCellValue(null);
+        }
+        /// <summary>
+        /// Tests that trying to get value of cell with basic name invalid throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testInvalidBaseGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "Test");
+            s.GetCellValue("12A");
+        }
+        /// <summary>
+        /// Tests that trying to get value of cell with name invalid due to isValid delegate throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testInvalidDelIsValidGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet(x=>false,x=>x,"test");
+            s.SetContentsOfCell("A1", "Test");
+            s.GetCellValue("A1");
+        }
+        /// <summary>
+        /// Tests that trying to get value of cell with name invalid due to normalize delegate throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testInvalidDelNormalizeGetValue()
+        {
+            AbstractSpreadsheet s = new Spreadsheet(x => { if (x == x.ToUpper()) return true; else return false; }, x => x.ToLower(), "test");
+            s.SetContentsOfCell("A1", "Test");
+            s.GetCellValue("A1");
         }
     }
 }

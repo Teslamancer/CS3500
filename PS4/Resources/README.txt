@@ -9,6 +9,6 @@ I updated my PS4 solution to pass all the grading tests, then merged with my PS5
 and changed them to use the new API. Next steps are to write some tests and implement the code around saving the file and loading it.
 9/26/2019 -
 I have implemented and tested the Changed property, and the Save method, so I need to write more tests for saving exceptions, then implement reading and 
-write tests for it as well.
+write tests for it as well. I need to implement recalculation of cells, and a lookup for formula.evaluate (throws exception for empty cell or text cell)
 Currently I am using updated versions of Formula and DependencyGraph that pass all of the Grading Tests, 
 and an update PS4 project that passes all the grading tests.
