@@ -25,7 +25,7 @@
 //    
 //    Version 1.8 (Daniel Kopta)      Unified error checking for setting cell contents
 //                (Fall 2019)         SetCellContents signatures changed to return IList
-//                            
+//    Version 1.9 (Hunter Schmidt)    Edited some method signatures to clairfy behavior
 
 
 using System;
@@ -361,7 +361,8 @@ namespace SS
 
 
         /// <summary>
-        /// A helper for the GetCellsToRecalculate method.
+        /// A helper for the GetCellsToRecalculate method which uses a depth first search to find all dependencies for a given start node by visiting 
+        /// all of its dependent nodes recursively.
         /// </summary>
         private void Visit(String start, String name, ISet<String> visited, LinkedList<String> changed)
         {

@@ -3,6 +3,7 @@ using SpreadsheetUtilities;
 using SS;
 using System;
 using System.Collections.Generic;
+using System.Xml;
 //Developed by Hunter Schmidt
 
 namespace SpreadsheetTest
@@ -11,14 +12,34 @@ namespace SpreadsheetTest
     public class SpreadsheetTests
     {
         /// <summary>
-        /// Tests getting of cell with invalid name
+        /// Tests getting of cell with invalid base name
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
-        public void testInvalidGetWithName()
+        public void testBaseInvalidGetWithName()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
             sheet.GetCellContents("123A");
+        }
+        /// <summary>
+        /// Tests getting of cell with invalid delegate name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testDelInvalidGetWithName()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet(s => { if (s == s.ToUpper()) return true; else return false; },s=>s,"Invalid");
+            sheet.GetCellContents("a1");
+        }
+        /// <summary>
+        /// Tests getting of cell with invalid delegate name due to normalizer
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void testDelNormInvalidGetWithName()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet(s => { if (s == s.ToUpper()) return true; else return false; }, s => s.ToLower(), "Invalid");
+            sheet.GetCellContents("A1");
         }
         /// <summary>
         /// Tests getting of cell with null name
@@ -405,12 +426,14 @@ namespace SpreadsheetTest
             Assert.IsFalse(s.Changed);
             s.SetContentsOfCell("A1", "Test");
             Assert.IsTrue(s.Changed);
-            s.Save("changedTestSheet.XML");
+            s.Save("changedTestSheet.xml");
             Assert.IsFalse(s.Changed);
             s.SetContentsOfCell("A1", "Test");
             Assert.IsFalse(s.Changed);
             s.SetContentsOfCell("A1", "changed");
             Assert.IsTrue(s.Changed);
+            AbstractSpreadsheet loadsheet = new Spreadsheet("changedTestSheet.xml", x=>true,x=>x,"test");
+            Assert.IsFalse(loadsheet.Changed);
         }
         /// <summary>
         /// Tests that loading file with null filename throws exception
@@ -508,6 +531,122 @@ namespace SpreadsheetTest
             s.SetContentsOfCell("A3", "=A1 + 10");
             s.SetContentsOfCell("A2", "Replaced!");
             s.Save("FINDME.xml");
+
+            using(XmlReader r = XmlReader.Create("FINDME.xml"))
+            {
+                r.Read();
+                Assert.IsTrue(r.IsStartElement());
+                Assert.AreEqual("spreadsheet",r.Name);
+                Assert.AreEqual("default", r["version"]);
+                readAndTestCellsFromXml(r, s);
+            }
+        }
+        /// <summary>
+        /// Helper method to test Cells saved properly into xml
+        /// </summary>
+        /// <param name="r">XmlReader</param>
+        /// <param name="s">Spreadsheet</param>
+        private void readAndTestCellsFromXml(XmlReader r, AbstractSpreadsheet s)
+        {
+            foreach (string cell in s.GetNamesOfAllNonemptyCells())
+            {
+                string toAddToContents = "";
+                r.Read();
+                Assert.IsTrue(r.IsStartElement());
+                Assert.AreEqual("cell", r.Name);
+                r.Read();
+                Assert.IsTrue(r.IsStartElement());
+                Assert.AreEqual("name", r.Name);
+                r.Read();
+                Assert.AreEqual(cell, r.Value);
+                r.Read();
+                r.Read();
+                Assert.IsTrue(r.IsStartElement());
+                Assert.AreEqual("contents", r.Name);
+                r.Read();
+                if (s.GetCellContents(cell).GetType() == typeof(Formula))
+                    toAddToContents = "=";
+                Assert.AreEqual(toAddToContents + s.GetCellContents(cell), r.Value);
+                r.Read();
+                r.Read();
+                r.Read();
+            }
+        }
+        /// <summary>
+        /// Tests saving to an invalid (nonexistant) directory
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testSaveInvalidPath()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "1.0");
+            s.SetContentsOfCell("A2", "Test");
+            s.SetContentsOfCell("A3", "=A1 + 10");
+            s.SetContentsOfCell("A2", "Replaced!");
+            s.Save("/This/Path/Doesn't/Exist/42/FINDME.xml");
+        }
+        /// <summary>
+        /// Tests saving to a nonexistant drive
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testSaveInvalidDrivePath()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "1.0");
+            s.SetContentsOfCell("A2", "Test");
+            s.SetContentsOfCell("A3", "=A1 + 10");
+            s.SetContentsOfCell("A2", "Replaced!");
+            s.Save(@"Z:\FINDME.xml");
+        }
+        /// <summary>
+        /// Tests Saving with an Invalid Filename
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testSaveNameInvalid()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "1.0");
+            s.SetContentsOfCell("A2", "Test");
+            s.SetContentsOfCell("A3", "=A1 + 10");
+            s.SetContentsOfCell("A2", "Replaced!");
+            s.Save(@"asdf!!""asdf.xml");
+        }
+        /// <summary>
+        /// Tests Saving with a filename that is too long
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testSaveNameTooLong()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("A1", "1.0");
+            s.SetContentsOfCell("A2", "Test");
+            s.SetContentsOfCell("A3", "=A1 + 10");
+            s.SetContentsOfCell("A2", "Replaced!");
+            s.Save(@"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.xml");
+        }
+        /// <summary>
+        /// Tests getting saved version with invalid directory
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testGetSavedVersionInvalidDirectory()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.GetSavedVersion("this/path/does/not/exist");
+        }
+        /// <summary>
+        /// Tests getting saved version with invalid file
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testGetSavedVersionInvalidFile()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            s.GetSavedVersion("this/path/does/not/exist");
         }
     }
 }

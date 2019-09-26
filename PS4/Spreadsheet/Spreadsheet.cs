@@ -16,7 +16,9 @@ namespace SS
         private DependencyGraph graph;
         private static readonly string validName = @"^[a-zA-Z]+[0-9]+$";//Regex to determine if cell name matches basic requirements
         private static readonly string isFormula = @"^=";//Regex to determine if string is a formula
-
+        /// <summary>
+        /// Indicates whether a spreadsheet has been changed since its creation, last save, or loading from file.
+        /// </summary>
         public override bool Changed { get; protected set; }
 
         /// <summary>
@@ -56,14 +58,14 @@ namespace SS
             this.graph = new DependencyGraph();
         }
         /// <summary>
-        /// Returns contents of cell with name. If value is null or invalid, throws InvalidNameException. If Cell hasn't had a value set (is empty),
-        /// returns an empty string.
+        /// Returns contents of cell with name. If value is null or invalid(either due to basic requirements or delegate), throws InvalidNameException.
+        /// If Cell hasn't had a value set (is empty), returns an empty string.
         /// </summary>
         /// <param name="name">Name of Cell to get contents of</param>
         /// <returns>Contents of cell with name "name"</returns>
         public override object GetCellContents(string name)
         {
-            if(name is null || !Regex.IsMatch(name, validName))//checks if name is null or invalid
+            if(name is null || !Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))//checks if name is null or invalid
             {
                 throw new InvalidNameException();
             }
@@ -184,24 +186,36 @@ namespace SS
 
         public override void Save(string filename)
         {
-            XmlWriterSettings settings = new XmlWriterSettings();
+            XmlWriterSettings settings = new XmlWriterSettings();//creates settings option for xml writer
             settings.Indent = true;
             settings.IndentChars = "\t";
             settings.OmitXmlDeclaration = true;
-
-            using(XmlWriter w = XmlWriter.Create(filename, settings))
+            try
             {
-                w.WriteStartDocument();
-                w.WriteStartElement("spreadsheet");
-                // This adds an attribute to the Nation element
-                w.WriteAttributeString("version", Version);
-                foreach(string cell in GetNamesOfAllNonemptyCells())
+                using (XmlWriter w = XmlWriter.Create(filename, settings))
                 {
-                    CelltoXML(w, cell);
+                    w.WriteStartDocument();
+                    w.WriteStartElement("spreadsheet");
+                    // This adds an attribute to the Nation element
+                    w.WriteAttributeString("version", Version);
+                    foreach (string cell in GetNamesOfAllNonemptyCells())
+                    {
+                        CelltoXML(w, cell);
+                    }
+
+                    w.WriteEndElement(); // Ends the spreadsheet block
+                    w.WriteEndDocument();
                 }
-                
-                w.WriteEndElement(); // Ends the spreadsheet block
-                w.WriteEndDocument();
+            }            
+            catch(System.IO.DirectoryNotFoundException)
+            {
+                //Console.WriteLine("InvalidPath");
+                throw new SpreadsheetReadWriteException("Invalid Path!");
+            }
+            catch(System.IO.IOException)
+            {
+                //Console.WriteLine("InvalidNameException");
+                throw new SpreadsheetReadWriteException("Invalid Filename!");
             }
             Changed = false;
         }
@@ -263,9 +277,12 @@ namespace SS
         /// </summary>
         private void CelltoXML(XmlWriter w, string name)
         {
+            string toWrite = "";
             w.WriteStartElement("cell");
             w.WriteElementString("name", name);
-            w.WriteElementString("contents", GetCellContents(name).ToString());
+            if (cells[name].contents.GetType() == typeof(Formula))
+                toWrite = "=";
+            w.WriteElementString("contents", toWrite + GetCellContents(name).ToString());
             w.WriteEndElement();
         }
 
