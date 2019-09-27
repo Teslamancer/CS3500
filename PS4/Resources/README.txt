@@ -1,8 +1,18 @@
-﻿Hunter Schmidt - 9/19/19
-I wrote a private class to represent cells as self-contained "units" which can store a text formula and/or a value. The Spreadsheet object itslef will store a DependencyGraph
-that maps each cell to its dependents and dependees.
-I am using the GetCellsToRecalculate method to get a list of a cell and all its dependents to return when setting cell values, and as it throws a
-CircularException when a new Formula causes a circular dependency, I am catching that exception to revert changes made to the offending cell,
-then re-throwing the exception.
+﻿Hunter Schmidt 
+9/23/2019 -
+I think the first step is to fix all of the "errors" caused by changing the API (ie: create valid constructors and function stubs),
+and allow the project to compile. 
+Then, I want to implement SetContentsOfCell and change my test cases to test that function. Then I will get to work on the file saving and validation 
+features of the new API.
+9/25/2019 - 
+I updated my PS4 solution to pass all the grading tests, then merged with my PS5 branch to pull down the changes. I included all the PS4 Grading tests
+and changed them to use the new API. Next steps are to write some tests and implement the code around saving the file and loading it.
+9/26/2019 -
+I have implemented and tested the Changed property, and the Save method, so I need to write more tests for saving exceptions, then implement reading and 
+write tests for it as well. I need to implement recalculation of cells, and a lookup for formula.evaluate (throws exception for empty cell or text cell)
 
-Currently I am using updated versions of Formula and DependencyGraph that pass all of the Grading Tests.
+Final Notes:
+Finished Commenting code and writing tests. This is very thoroughly tested, with ~100% Code coverage. I ended up having the SetContentsOfCell Method
+Trigger a helper recalculating method for all dependent cells.
+Currently I am using updated versions of Formula and DependencyGraph that pass all of the Grading Tests, 
+and an update PS4 project that passes all the grading tests.
