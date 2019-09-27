@@ -38,6 +38,8 @@ namespace SS
         /// <param name="version">Version of the Spreadsheet</param>
         public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version): base(isValid, normalize, version)
         {
+            if (isValid is null || normalize is null || version is null)
+                throw new ArgumentNullException();
             this.cells = new Dictionary<string, Cell>();
             this.graph = new DependencyGraph();
         }
@@ -50,12 +52,70 @@ namespace SS
         /// <param name="isValid">Validity Checker Delegate for Cell Names</param>
         /// <param name="normalize">Normalizer Delegate for Cell Names</param>
         /// <param name="version">Version of the Spreadsheet</param>
-        public Spreadsheet(string filepath, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
+        public Spreadsheet(string filepath, Func<string, bool> isValid, Func<string, string> normalize, string version) : this(isValid, normalize, version)
         {
-            //IMPLEMENT SOME GETTERS TO GET THE FILE AND POPULATE THE DICTIONARY AND DEPENDENCYGRAPH FROM IT
-            throw new NotImplementedException();
-            this.cells = new Dictionary<string, Cell>();
-            this.graph = new DependencyGraph();
+            try
+            {
+                using (XmlReader r = XmlReader.Create(filepath))//reads in file using xmlreader
+                {
+                    r.Read();
+                    if (r["version"] != version)//checks for version mismatch
+                    {
+                        Console.WriteLine("Version Mismatch! Provided version does not match version found.");
+                        throw new SpreadsheetReadWriteException("Version Mismatch! Provided version does not match version found.");
+                    }
+                    else
+                    {
+                        while (r.Read())//reads file in, inserting cell values from file, skips until cell element found
+                        {
+                            if (r.IsStartElement() && r.Name=="cell")
+                            {
+                                readInCell(r);
+                            }
+                        }
+                    }
+                        
+                }
+            }
+            catch (ArgumentNullException)//catches if filepath is null
+            {
+                throw new SpreadsheetReadWriteException("Filepath cannot be null!");
+            }
+            catch (System.IO.FileNotFoundException)//catches if file cannot be found or path is invalid
+            {
+                throw new SpreadsheetReadWriteException("File not found!");
+            }
+            //catch(SpreadsheetReadWriteException e)
+            //{
+            //    throw e;
+            //}
+
+
+            this.Changed = false;
+        }
+        /// <summary>
+        /// Returns a cell with appropriate data given an XmlReader object at a Cell start tag
+        /// </summary>
+        /// <param name="r">XmlReader to use</param>
+        /// <returns>Cell from Xml File</returns>
+        private void readInCell(XmlReader r)
+        {
+            string contents;
+            string name;            
+            r.Read();            //read three times to get to name
+            r.Read();
+            r.Read();
+            //r.Read();
+            name = r.Value;         //read in name value   
+            r.Read();//read four times to get to contents
+            r.Read();            
+            r.Read();
+            r.Read();
+            contents = r.Value;   //read in contents value         
+            //r.Read();
+            //r.Read();
+            //r.Read();
+            this.SetContentsOfCell(name, contents);//add in new cell with name and contents
         }
         /// <summary>
         /// Returns contents of cell with name. If value is null or invalid(either due to basic requirements or delegate), throws InvalidNameException.
@@ -70,8 +130,15 @@ namespace SS
                 throw new InvalidNameException();
             }
             else if(cells.ContainsKey(name))//checks if we have specific data for that name
-            {                
-                return cells[name].contents;
+            {
+                object toReturn = cells[name].contents;
+                if (toReturn.GetType() == typeof(string))
+                    toReturn = (string)toReturn;
+                else if (toReturn.GetType() == typeof(double))
+                    toReturn = (double)toReturn;
+                else if (toReturn.GetType() == typeof(Formula))
+                    toReturn = (Formula)toReturn;
+                return toReturn;
             }
             else
             {
@@ -171,19 +238,45 @@ namespace SS
         /// <returns>IEnumerable string representation of dependent cells</returns>
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            if (name is null)//double checks name is not null or invalid
-                throw new ArgumentNullException();
-            else if (!Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))
-                throw new InvalidNameException();
-            else
-                return new List<string>(graph.GetDependents(name));
+            return new List<string>(graph.GetDependents(name));
         }
-
+        /// <summary>
+        /// Returns version of saved file with filename
+        /// </summary>
+        /// <param name="filename">File to get version of</param>
+        /// <returns></returns>
         public override string GetSavedVersion(string filename)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (XmlReader r = XmlReader.Create(filename))//tries to read in file at filename
+                {
+                    r.Read();
+                    string toReturn = r["version"];
+                    if (toReturn is null)
+                        throw new SpreadsheetReadWriteException("Invalid File!");
+                    else
+                        return toReturn;
+                }
+            }
+            catch (System.IO.DirectoryNotFoundException)//catches if directory can't be found
+            {
+                throw new SpreadsheetReadWriteException("Directory not found!");
+            }
+            catch (System.IO.FileNotFoundException)//catches if the file doesn't exist
+            {
+                throw new SpreadsheetReadWriteException("File not found!");
+            }
+            catch (ArgumentNullException)//catches if filename is null
+            {
+                throw new SpreadsheetReadWriteException("File name cannot be null!");
+            }
+            
         }
-
+        /// <summary>
+        /// Saves the Spreadsheet to an xml file at filename throws SpreadsheetReadWrite Exception if anything goes wrong with the saving process
+        /// </summary>
+        /// <param name="filename">path of saved file</param>
         public override void Save(string filename)
         {
             XmlWriterSettings settings = new XmlWriterSettings();//creates settings option for xml writer
@@ -254,6 +347,17 @@ namespace SS
             }
         }
         /// <summary>
+        /// Recalculates values of cells after changes to cell with name
+        /// </summary>
+        /// <param name="changedCell">Name of cell that was just changed</param>
+        private void recalulateCellValues(string changedCell)
+        {
+            foreach(string cell in GetCellsToRecalculate(changedCell))//recalculates value for each cell that was affected
+            {
+                calculateValue(cell);
+            }
+        }
+        /// <summary>
         /// Sets contents of cell with name to content. Throws InvalidNameException if name is null or invalid 
         /// (checking validity with both basic requirements and provided delegate. Throws Argument NullException if content is null.
         /// If it is a number, sets it to that number. If it is text, sets it to that text,
@@ -262,8 +366,9 @@ namespace SS
         /// <param name="name">Cell name</param>
         /// <param name="content">Content to set</param>
         /// <returns></returns>
-        public override IList<string> SetContentsOfCell(string name, string content)//ADD RECALULATING CELL LOGIC
+        public override IList<string> SetContentsOfCell(string name, string content)
         {
+            IList<string> toReturn = new List<string>();
             if (content is null)//check if content is null
                 throw new ArgumentNullException();
             else if (name is null || !Regex.IsMatch(name, validName) || !IsValid(Normalize(name)))//check name is not null or invalid
@@ -284,21 +389,28 @@ namespace SS
                     Changed = false;
                 else                
                     Changed = true;
-                return this.SetCellContents(name, dcontents);
+                
+                toReturn = this.SetCellContents(name, dcontents);                
             }
             else if (Regex.IsMatch(content, isFormula))//checks if content is a formula
             {
                 if (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(Formula) && content.TrimStart('=') == (GetCellContents(name).ToString()))
                     Changed = false;
                 else
-                    Changed = true;                
-                return this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
+                    Changed = true;
+                
+                toReturn = this.SetCellContents(name, new Formula(content.TrimStart('='), Normalize, IsValid));                    
             }
-            if ((content == "" && !cells.ContainsKey(name)) || (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(string) && content == (string)GetCellContents(name)))
-                Changed = false;
-            else            
-                Changed = true;            
-            return this.SetCellContents(name, content);//sets cell content as string text of content
+            else 
+            {
+                if ((content == "" && !cells.ContainsKey(name)) || (cells.ContainsKey(name) && cells[name].contents.GetType() == typeof(string) && content == (string)GetCellContents(name)))
+                    Changed = false;
+                else
+                    Changed = true;
+                toReturn = this.SetCellContents(name, content);//sets cell content as string text of content
+            }                        
+            recalulateCellValues(name);//recalculates all dependent cells after change
+            return toReturn;
                         
         }
         /// <summary>
@@ -314,22 +426,7 @@ namespace SS
             w.WriteElementString("contents", toWrite + GetCellContents(name).ToString());
             w.WriteEndElement();
         }
-        /// <summary>
-        /// Returns value of cell as double given name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private double cellLookup(string name)//WHAT ABOUT FORMULAERROR
-        {
-            if(cells[name].value.GetType() == typeof(string))
-            {
-                throw new ArgumentException();
-            }
-            else
-            {
-                return (double)cells[name].value;
-            }
-        }
+        
 
         /// <summary>
         /// This class represents one cell of a Spreadsheet, containing it's contents (what is entered into the cell) and it's value 
@@ -340,11 +437,7 @@ namespace SS
         {
             public string name;
             public object contents;            
-            public object value;
-            /// <summary>
-            /// This constructor initializes an empty cell;
-            /// </summary>
-            //Cell(string name) : this(name, "") { }
+            public object value;            
             /// <summary>
             /// This constructor allows the Spreadsheet to initialize the cell with its contents
             /// </summary>
@@ -352,27 +445,50 @@ namespace SS
             public Cell(string name, Object contents)
             {                            
                 this.name = name;
-                this.contents = contents;
-                this.value = calculateValue();                
-            }
-            /// <summary>
-            /// Calculates and sets value for cell
-            /// </summary>
-            protected object calculateValue()
+                this.contents = contents;                           
+            }         
+            
+        }
+        /// <summary>
+        /// Helper method that populates cell with name with its appropriate value
+        /// </summary>
+        /// <param name="name">Name of cell</param>
+        private void calculateValue(string name)
+        {
+            if (!cells.ContainsKey(name))
+                return;
+            if (cells[name].contents.GetType() == typeof(string) || cells[name].contents.GetType() == typeof(double))
+                cells[name].value = cells[name].contents;
+            else
             {
-                if(contents.GetType() == typeof(string))
-                    return (string)contents;
-                else if (contents.GetType() == typeof(double))
-                {
-                    return (double)contents;
-                }
-                else
-                {
-                    Formula f = (Formula)contents;
-                    return f.Evaluate();
-                }
+                Formula f = (Formula)cells[name].contents;
+                cells[name].value = f.Evaluate(cellLookup);
+            }
+            
+        }
+        /// <summary>
+        /// Returns value of cell as double given name
+        /// </summary>
+        /// <param name="name">Cell Name to Lookup</param>
+        /// <returns>Value of Cell</returns>
+        private double cellLookup(string name)
+        {
+            if(!cells.ContainsKey(name))
+                throw new ArgumentException();
+            if (cells[name].value.GetType() == typeof(string))
+            {
+                throw new ArgumentException();
+            }
+            else if (cells[name].value.GetType() == typeof(FormulaError))
+            {
+                throw new ArgumentException();
+            }
+            else
+            {
+                return (double)cells[name].value;
             }
         }
+
     }
         
 }
