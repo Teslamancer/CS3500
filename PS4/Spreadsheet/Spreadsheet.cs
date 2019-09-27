@@ -72,6 +72,10 @@ namespace SS
                             {
                                 readInCell(r);
                             }
+                            else if(r.IsStartElement() && r.Name != "cell")
+                            {
+                                throw new SpreadsheetReadWriteException("Invalid XML in File, NonCell Element found!");
+                            }
                         }
                     }
                         
@@ -104,12 +108,16 @@ namespace SS
             string name;            
             r.Read();            //read three times to get to name
             r.Read();
+            if (r.IsStartElement() && r.Name != "name")
+                throw new SpreadsheetReadWriteException("Invalid XML Format, Cell Name Incorrect!");
             r.Read();
             //r.Read();
             name = r.Value;         //read in name value   
             r.Read();//read four times to get to contents
             r.Read();            
             r.Read();
+            if (r.IsStartElement() && r.Name != "contents")
+                throw new SpreadsheetReadWriteException("Invalid XML Format, Cell Contents Incorrect!");
             r.Read();
             contents = r.Value;   //read in contents value         
             //r.Read();

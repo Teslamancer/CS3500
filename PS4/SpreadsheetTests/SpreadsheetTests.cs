@@ -1446,5 +1446,64 @@ namespace SpreadsheetTest
             }
             return f;
         }
+        /// <summary>
+        /// Tests readin in invalid xml throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testReadInvalidFileDoesntStartWithSpreadsheet()
+        {
+            using(XmlWriter w = XmlWriter.Create("InvalidXml.xml"))
+            {
+                w.WriteStartDocument();
+                w.WriteStartElement("InvalidElement");
+                w.WriteEndElement();
+                w.WriteEndDocument();
+            }
+            AbstractSpreadsheet s = new Spreadsheet("InvalidXml.xml",x=>true,x=>x,"default");
+        }
+        /// <summary>
+        /// Tests readin in elements that aren't cell throws exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testReadInvalidFileElementNotCell()
+        {
+            using (XmlWriter w = XmlWriter.Create("InvalidCells.xml"))
+            {
+                w.WriteStartDocument();
+                w.WriteStartElement("spreadsheet");
+                // This adds an attribute to the Nation element
+                w.WriteAttributeString("version", "test");
+                w.WriteStartElement("Nonreal");
+                w.WriteEndElement();
+                w.WriteEndElement(); // Ends the spreadsheet block                
+                w.WriteEndDocument();
+            }
+            AbstractSpreadsheet s = new Spreadsheet("InvalidCells.xml", x => true, x => x, "default");
+        }
+        /// <summary>
+        /// Tests readin in cells without valid content
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void testReadInvalidCell()
+        {
+            using (XmlWriter w = XmlWriter.Create("InvalidCells.xml"))
+            {
+                w.WriteStartDocument();
+                w.WriteStartElement("spreadsheet");
+                // This adds an attribute to the Nation element
+                w.WriteAttributeString("version", "test");
+                w.WriteStartElement("cell");
+                w.WriteStartElement("nonreal");
+                w.WriteElementString("notreal", "nonreal");
+                w.WriteEndElement();
+                w.WriteEndElement();
+                w.WriteEndElement(); // Ends the spreadsheet block                
+                w.WriteEndDocument();
+            }
+            AbstractSpreadsheet s = new Spreadsheet("InvalidCells.xml", x => true, x => x, "default");
+        }
     }
 }
